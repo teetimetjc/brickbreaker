@@ -1,0 +1,32 @@
+{
+  "videos_per_run": 1,
+  "min_len_sec": 30,
+  "max_len_sec": 75,
+  "game_over_share": 0.3,
+
+  "youtube": {
+    "privacy": "public",
+    "category_id": "24",
+    "tags": ["satisfying", "oddly satisfying", "brick breaker", "breakout", "simulation", "asmr"],
+    "hashtags": ["#shorts", "#satisfying", "#oddlysatisfying"]
+  },
+
+  "x": {
+    "hashtags": ["#satisfying", "#oddlysatisfying"]
+  },
+
+  "captions": {
+    "win": [
+      "Will it clear? Watch to the end",
+      "Guess how long this takes",
+      "Wait for the last brick...",
+      "How many balls does it take?"
+    ],
+    "lose": [
+      "Will it make it?",
+      "Does it clear or run out of balls?",
+      "Every miss costs a ball...",
+      "Guess the final %"
+    ]
+  }
+}

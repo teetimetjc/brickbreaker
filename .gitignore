@@ -1,0 +1,6 @@
+output/
+__pycache__/
+*.tmp.mp4
+*.tmp.wav
+client_secret*.json
+.env

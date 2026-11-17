@@ -1,0 +1,57 @@
+name: Brick breaker autopost
+
+on:
+  schedule:
+    # Times are UTC. 14:07 UTC ~ 8:07am Central, 00:07 UTC ~ 6:07pm Central (standard time).
+    - cron: "7 14 * * *"
+    - cron: "7 0 * * *"
+  workflow_dispatch:  # "Run workflow" button for manual runs
+    inputs:
+      count:
+        description: "How many videos"
+        default: "1"
+      live:
+        description: "Post for real? (false = dry run)"
+        default: "false"
+
+concurrency:
+  group: autopost
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install ffmpeg + Python packages
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y ffmpeg fonts-dejavu-core
+          pip install -r requirements.txt
+
+      - name: Render and post
+        env:
+          # Scheduled runs go live only when the AUTOPOST_LIVE repo variable is "true".
+          AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: python pipeline.py --count "${{ inputs.count || '1' }}"
+
+      - name: Keep the videos (download from the run page)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-${{ github.run_number }}
+          path: output/
+          retention-days: 14
