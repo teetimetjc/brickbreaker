@@ -64,7 +64,7 @@ def font(size):
 class Layout:
     def __init__(self, W=1080, H=1920, cell=20):
         self.W, self.H, self.cell = W, H, cell
-        self.hud = int(H * 0.05) if H > W else int(H * 0.08)  # slim strip: balls left + timer
+        self.hud = 0  # no on-screen HUD; the board fills the frame (end card still shows the result)
         self.cols = W // cell
         self.rows = (H - self.hud) // cell
         self.ox = (W - self.cols * cell) // 2
@@ -457,35 +457,6 @@ class Renderer:
             blk[2:-2, 2:-2] = col.astype(np.uint8)
             blk[2:4, 2:-2] = np.minimum(col * 1.25, 255).astype(np.uint8)
 
-    def hud(self):
-        s, L = self.sim, self.L
-        pct = int(100 * s.destroyed / max(1, s.total))
-        sec = s.frame // FPS
-        key = (pct, len(s.balls), sec, s.destroyed * 1000 // max(1, s.total), s.lost)
-        if key == self.hud_key:
-            return self.hud_img
-        self.hud_key = key
-        img = Image.new("RGB", (L.W, L.hud), self.BG_HUD)
-        d = ImageDraw.Draw(img)
-        # one line: balls left + timer (no title / progress bar / % cleared -- the end card shows those)
-        nb = len(s.balls)
-        balls_txt = "LAST BALL" if (s.lose and nb == 1) else f"{nb} ball{'s' if nb != 1 else ''}" + (" left" if s.lose else "")
-        danger = s.lose and nb <= 2
-        parts = [(balls_txt, (255, 80, 90) if danger else (190, 190, 205)),
-                 (f"{sec // 60}:{sec % 60:02d}", (190, 190, 205))]
-        sep = "   \u2022   "
-        full = sep.join(p for p, _ in parts)
-        x = L.W / 2 - d.textlength(full, font=self.f_small) / 2
-        y = L.hud / 2
-        for i, (txt, col) in enumerate(parts):
-            d.text((x, y), txt, font=self.f_small, fill=col, anchor="lm")
-            x += d.textlength(txt, font=self.f_small)
-            if i < len(parts) - 1:
-                d.text((x, y), sep, font=self.f_small, fill=(110, 110, 125), anchor="lm")
-                x += d.textlength(sep, font=self.f_small)
-        self.hud_img = np.array(img)
-        return self.hud_img
-
     def _blend_ball(self, f, x, y, alpha, color=(255, 255, 255)):
         L, R = self.L, self.stamp_r
         cx, cy = int(L.ox + x * L.cell), int(L.oy + y * L.cell)
@@ -538,7 +509,6 @@ class Renderer:
         for x, y in pos:
             self._blend_ball(f, x, y, 1.0)
         self.trail.append(pos)
-        f[:L.hud] = self.hud()
         if overlay is not None:
             img, a = overlay
             f[:] = (f.astype(np.float32) * (1 - a) + img[..., :3] * a).astype(np.uint8)
