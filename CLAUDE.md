@@ -35,11 +35,13 @@ them, ~500K–22M views).
 
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
-- YouTube and X uploaders written but UNTESTED (no accounts/keys yet). Accounts not created yet.
-- No GitHub repo yet.
+- YouTube and X uploaders written but UNTESTED (no API keys yet).
+- GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
+- X account: @brickbreakerrrr (repurposed older account). Display name not changed yet; "Automated" label and
+  developer app/keys not set up yet. YouTube channel not created yet.
 
 ## Next steps
-1. Create a private GitHub repo (e.g. `last-brick-autopost`) and push this folder.
+1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
 2. Run the workflow manually in dry-run mode; confirm videos appear as artifacts.
 3. When keys exist: `gh secret set` for each, one manual live run, then repo variable `AUTOPOST_LIVE=true`.
 4. Quote-tweet support on X: POST /2/tweets with `quote_tweet_id`. Semi-automatic – Trevor picks the viral
