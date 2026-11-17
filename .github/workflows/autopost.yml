@@ -13,6 +13,20 @@ on:
       live:
         description: "Post for real? (false = dry run)"
         default: "false"
+      quote:
+        description: "Quote this X post (paste its link). Leave blank for a normal post. Quote = X only, 1 video"
+        default: ""
+      text:
+        description: "Your caption (blank = random hook)"
+        default: ""
+      ending:
+        description: "How the video ends"
+        type: choice
+        options: [any, win, lose]
+        default: any
+      word:
+        description: "Spell a word in bricks, e.g. MONDAY (blank = random shape)"
+        default: ""
 
 concurrency:
   group: autopost
@@ -46,7 +60,15 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
-        run: python pipeline.py --count "${{ inputs.count || '1' }}"
+          # Inputs go through env vars, never pasted into the script, so odd characters in a caption can't break it.
+          IN_COUNT: ${{ inputs.count || '1' }}
+          IN_QUOTE: ${{ inputs.quote }}
+          IN_TEXT: ${{ inputs.text }}
+          IN_ENDING: ${{ inputs.ending || 'any' }}
+          IN_WORD: ${{ inputs.word }}
+        run: |
+          python pipeline.py --count "$IN_COUNT" --quote "$IN_QUOTE" --text "$IN_TEXT" \
+            --ending "$IN_ENDING" --word "$IN_WORD"
 
       - name: Keep the videos (download from the run page)
         if: always()

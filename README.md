@@ -52,6 +52,22 @@ Local test: `pip install -r requirements.txt` (plus ffmpeg), then `python3 pipel
 - [ ] Set repo variable `AUTOPOST_LIVE=true` so the twice-daily schedule posts for real
 - [ ] After a week: check which shapes/lengths/endings get the most views and adjust `config.json`
 
+## Quote-posting a viral post on X
+
+You pick the post; the pipeline renders a fresh video and posts it on X as a quote of that post.
+
+1. On GitHub: **Actions → Brick breaker autopost → Run workflow**.
+2. **quote**: paste the post's link (Share → Copy link in the X app).
+3. **text**: your caption – the joke that ties the post to the video. Blank = a random hook.
+4. **ending**: `lose` (GAME OVER) or `win` (CLEARED!) to fit the joke, or `any`.
+5. **word** (optional): spell a word in bricks, e.g. `MONDAY`.
+6. **live**: `false` first to check the video in the run's artifacts, `true` to post.
+
+Quote runs post to X only (not YouTube) and make one video. From the command line:
+`python3 pipeline.py --quote <link> --text "..." --ending lose --word MONDAY [--live]`
+
+Only quote posts where the video actually fits. Mass-quoting random viral posts gets accounts limited.
+
 ## Settings worth knowing
 
 * Schedule: edit the two `cron:` lines in the workflow (times are UTC).

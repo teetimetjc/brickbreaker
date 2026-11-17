@@ -8,6 +8,7 @@ Cost on pay-per-use: about $0.015 per post plus the upload calls. Keep links OUT
 text: a post containing a URL is billed at ~$0.20.
 """
 import os
+import re
 import time
 
 UPLOAD_URL = "https://api.x.com/2/media/upload"
@@ -62,9 +63,21 @@ def upload_video(s, path):
     return media_id
 
 
+def tweet_id(url_or_id):
+    """'https://x.com/someone/status/123?s=20' or '123' -> '123'."""
+    m = re.search(r"/status(?:es)?/(\d+)", url_or_id or "") or re.fullmatch(r"\s*(\d{5,25})\s*", url_or_id or "")
+    if not m:
+        raise ValueError(f"not an X post link or id: {url_or_id!r}")
+    return m.group(1)
+
+
 def post(path, caption, settings):
+    """caption: {"text": ..., "quote": optional post URL/id to quote}."""
     s = _session()
     media_id = upload_video(s, path)
-    r = _check(s.post(TWEET_URL, json={"text": caption["text"], "media": {"media_ids": [media_id]}}), "create post")
+    body = {"text": caption["text"], "media": {"media_ids": [media_id]}}
+    if caption.get("quote"):
+        body["quote_tweet_id"] = tweet_id(caption["quote"])
+    r = _check(s.post(TWEET_URL, json=body), "create post")
     tid = r["data"]["id"]
     return f"https://x.com/i/status/{tid}"

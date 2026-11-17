@@ -6,6 +6,11 @@ Autopost pipeline: render new brick-breaker videos and (optionally) post them.
   python3 pipeline.py --live       # also post to every platform whose keys are set
   python3 pipeline.py --count 3    # override videos_per_run from config.json
 
+Quote-post mode (X only, one video): you pick a post, the pipeline renders a fresh video and quotes it.
+  python3 pipeline.py --quote https://x.com/someone/status/123 --text "me trying to finish this week" --ending lose
+  --ending win|lose|any   force how the video ends (default: random)
+  --word MONDAY           spell a word in bricks instead of a random shape
+
 Posting turns on per platform only when its secrets exist (see README.md):
   YouTube: YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
   X:       X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET
@@ -60,33 +65,56 @@ def main():
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--outdir", default=os.path.join(HERE, "output"))
     ap.add_argument("--seed", type=int, default=None, help="reproduce a run")
+    ap.add_argument("--quote", default="", help="X post link (or id) to quote; posts to X only, 1 video")
+    ap.add_argument("--text", default="", help="your own caption (default: a random hook)")
+    ap.add_argument("--ending", default="any", choices=["any", "win", "lose"], help="force the ending")
+    ap.add_argument("--word", default="", help="spell this word in bricks")
     a = ap.parse_args()
+    a.quote, a.text, a.word = a.quote.strip(), a.text.strip(), a.word.strip().upper()
+    if a.quote:
+        x.tweet_id(a.quote)  # fail fast on a bad link, before spending time rendering
 
     cfg = load_config(a.config)
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
-    count = a.count or cfg["videos_per_run"]
+    count = 1 if a.quote else (a.count or cfg["videos_per_run"])
+    publishers = {"x": x} if a.quote else PUBLISHERS
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
     run_dir = os.path.join(a.outdir, stamp)
     os.makedirs(run_dir, exist_ok=True)
     master = random.Random(a.seed)
 
-    ready = {name: p.configured() for name, p in PUBLISHERS.items()}
+    ready = {name: p.configured() for name, p in publishers.items()}
     mode = "LIVE" if live else "DRY RUN"
     print(f"== {mode} | {count} video(s) | platforms with keys: "
           f"{', '.join(k for k, v in ready.items() if v) or 'none'}")
+    if a.quote:
+        print(f"== quote mode: will quote {a.quote}")
+        if live and not ready["x"]:
+            sys.exit("quote mode needs the X keys (X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET)")
 
     results = []
     for i in range(count):
         vcfg = gen.random_cfg(master, gen.default_cfg(), cfg["min_len_sec"], cfg["max_len_sec"],
                               cfg["game_over_share"])
+        if a.ending != "any":
+            vcfg["lose"], vcfg["outcome"] = True, a.ending
+        if a.word:
+            # no walls (they cut letters) and the smallest bricks (bigger ones make letters unreadable)
+            vcfg.update(pattern="text", text=a.word, obstacle="none", cell=20, balls=None, split_every=0)
         name = f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4"
         path = os.path.join(run_dir, name)
         print(f"[{i + 1}/{count}] rendering {name}")
         meta = gen.make_video(vcfg, path)
         caps = build_captions(meta, cfg, master)
+        if a.text:
+            caps["x"]["text"] = a.text  # your words only; no hashtags (they look spammy on a reply-style quote)
+        if a.quote:
+            caps["x"]["quote"] = a.quote
+            if not a.text:
+                caps["x"]["text"] = caps["x"]["text"].split("\n")[0]
         entry = {"video": meta, "captions": caps, "posts": {}}
 
-        for pname, pub in PUBLISHERS.items():
+        for pname, pub in publishers.items():
             if not ready[pname]:
                 entry["posts"][pname] = {"status": "skipped", "reason": "no keys yet"}
             elif not live:
@@ -117,7 +145,7 @@ def write_summary(mode, results):
         v, p = r["video"], r["posts"]
 
         def cell(k):
-            s = p[k]
+            s = p.get(k, {"status": "n/a"})
             return f"[posted]({s['url']})" if s["status"] == "posted" else s["status"]
 
         ending = "cleared" if v["outcome"] == "win" else f"game over at {v['cleared_pct']}%"

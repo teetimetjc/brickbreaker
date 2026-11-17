@@ -24,6 +24,9 @@ them, ~500K–22M views).
 - `pipeline.py` – renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
   JSON + `run_log.json` + GitHub step summary, posts to each platform whose secrets exist.
   DRY RUN by default; `--live` or `AUTOPOST_LIVE=true` posts for real.
+  Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and
+  posts it to X only with `quote_tweet_id`. Word videos force no walls + 20px bricks so letters stay readable.
+  The workflow's Run button has matching quote/text/ending/word boxes (passed via env vars, not inlined).
 - `config.json` – videos_per_run, length range (30–75 s), game_over_share (0.3), caption hooks, hashtags.
 - `publishers/youtube.py` – YouTube Data API v3 resumable upload (YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN).
 - `publishers/x.py` – X API v2 chunked video upload + POST /2/tweets
@@ -35,17 +38,17 @@ them, ~500K–22M views).
 
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
-- YouTube and X uploaders written but UNTESTED (no API keys yet).
+- YouTube and X uploaders (incl. X quote posts) written but UNTESTED (no API keys yet).
 - GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
-- X account: @brickbreakerrrr (repurposed older account). Display name not changed yet; "Automated" label and
-  developer app/keys not set up yet. YouTube channel not created yet.
+- X account: @brickbreakerrrr (repurposed older account). Nothing set up on it yet: display name, profile,
+  "Automated" label, developer app/keys all still to do. YouTube channel not created yet.
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
 2. Run the workflow manually in dry-run mode; confirm videos appear as artifacts.
 3. When keys exist: `gh secret set` for each, one manual live run, then repo variable `AUTOPOST_LIVE=true`.
-4. Quote-tweet support on X: POST /2/tweets with `quote_tweet_id`. Semi-automatic – Trevor picks the viral
-   post to quote, the pipeline renders + posts. Don't auto-quote random strangers' posts at scale (spam risk).
+4. ~~Quote-tweet support on X~~ (built; untested against the real API until X keys exist). Semi-automatic only –
+   Trevor picks the post. Don't auto-quote random strangers' posts at scale (spam risk).
 5. Decide: posting service (Upload-Post / Blotato / Ayrshare, ~$20–30/mo, already audited for
    YouTube/TikTok/Meta) vs direct APIs. If a service, add a publisher for it.
 6. Add TikTok and Instagram/Facebook Reels (Reels need 5–90 s).
