@@ -64,7 +64,7 @@ def font(size):
 class Layout:
     def __init__(self, W=1080, H=1920, cell=20):
         self.W, self.H, self.cell = W, H, cell
-        self.hud = int(H * 0.125) if H > W else int(H * 0.15)
+        self.hud = int(H * 0.05) if H > W else int(H * 0.08)  # slim strip: balls left + timer
         self.cols = W // cell
         self.rows = (H - self.hud) // cell
         self.ox = (W - self.cols * cell) // 2
@@ -467,42 +467,21 @@ class Renderer:
         self.hud_key = key
         img = Image.new("RGB", (L.W, L.hud), self.BG_HUD)
         d = ImageDraw.Draw(img)
-        # title (wrap to 2 lines)
-        words, lines, cur = self.title.split(), [], ""
-        for w in words:
-            trial = (cur + " " + w).strip()
-            if d.textlength(trial, font=self.f_title) > L.W * 0.92 and cur:
-                lines.append(cur)
-                cur = w
-            else:
-                cur = trial
-        lines.append(cur)
-        y = int(L.hud * 0.10)
-        for ln in lines[:2]:
-            d.text((L.W / 2, y), ln, font=self.f_title, fill=(255, 255, 255), anchor="mt")
-            y += int(self.f_title.size * 1.15)
-        # progress bar
-        m, bh = int(L.W * 0.06), int(L.hud * 0.11)
-        by = L.hud - bh - int(L.hud * 0.22)
-        d.rounded_rectangle((m, by, L.W - m, by + bh), radius=bh // 2, fill=(40, 40, 50))
-        frac = s.destroyed / max(1, s.total)
-        if frac > 0:
-            d.rounded_rectangle((m, by, m + max(bh, int((L.W - 2 * m) * frac)), by + bh),
-                                radius=bh // 2, fill=self.brick_color(L.brick_top))
+        # one line: balls left + timer (no title / progress bar / % cleared -- the end card shows those)
         nb = len(s.balls)
         balls_txt = "LAST BALL" if (s.lose and nb == 1) else f"{nb} ball{'s' if nb != 1 else ''}" + (" left" if s.lose else "")
         danger = s.lose and nb <= 2
-        parts = [(f"{pct}% cleared", (190, 190, 205)), (balls_txt, (255, 80, 90) if danger else (190, 190, 205)),
+        parts = [(balls_txt, (255, 80, 90) if danger else (190, 190, 205)),
                  (f"{sec // 60}:{sec % 60:02d}", (190, 190, 205))]
         sep = "   \u2022   "
         full = sep.join(p for p, _ in parts)
         x = L.W / 2 - d.textlength(full, font=self.f_small) / 2
-        y = by + bh + int(L.hud * 0.05)
+        y = L.hud / 2
         for i, (txt, col) in enumerate(parts):
-            d.text((x, y), txt, font=self.f_small, fill=col)
+            d.text((x, y), txt, font=self.f_small, fill=col, anchor="lm")
             x += d.textlength(txt, font=self.f_small)
             if i < len(parts) - 1:
-                d.text((x, y), sep, font=self.f_small, fill=(110, 110, 125))
+                d.text((x, y), sep, font=self.f_small, fill=(110, 110, 125), anchor="lm")
                 x += d.textlength(sep, font=self.f_small)
         self.hud_img = np.array(img)
         return self.hud_img
@@ -871,7 +850,7 @@ def main():
     ap.add_argument("--target", type=float, default=None, help="target length in seconds (auto-tunes speed)")
     ap.add_argument("--speed", type=float, default=None, help="ball speed in cells/frame (overrides --target)")
     ap.add_argument("--max-len", type=float, default=180, help="hard cap on length in seconds")
-    ap.add_argument("--title", default=None, help="hook text at the top (auto if omitted)")
+    ap.add_argument("--title", default=None, help="hook text used for captions/YouTube title (auto if omitted; not drawn on the video)")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--format", default="vertical", choices=["vertical", "square", "landscape"])
     ap.add_argument("--out", default=None)
