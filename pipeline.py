@@ -94,17 +94,25 @@ def main():
 
     results = []
     for i in range(count):
-        vcfg = gen.random_cfg(master, gen.default_cfg(), cfg["min_len_sec"], cfg["max_len_sec"],
-                              cfg["game_over_share"])
-        if a.ending != "any":
-            vcfg["lose"], vcfg["outcome"] = True, a.ending
-        if a.word:
-            # no walls (they cut letters) and the smallest bricks (bigger ones make letters unreadable)
-            vcfg.update(pattern="text", text=a.word, obstacle="none", cell=20, balls=None, split_every=0)
-        name = f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4"
-        path = os.path.join(run_dir, name)
-        print(f"[{i + 1}/{count}] rendering {name}")
-        meta = gen.make_video(vcfg, path)
+        # The length tuner occasionally can't hit the target for a design (e.g. huge bricks + 1 ball) and
+        # overshoots; re-roll a fresh design rather than post a 2-minute video.
+        too_long = cfg["max_len_sec"] * 1.3
+        for attempt in range(3):
+            vcfg = gen.random_cfg(master, gen.default_cfg(), cfg["min_len_sec"], cfg["max_len_sec"],
+                                  cfg["game_over_share"])
+            if a.ending != "any":
+                vcfg["lose"], vcfg["outcome"] = True, a.ending
+            if a.word:
+                # no walls (they cut letters) and the smallest bricks (bigger ones make letters unreadable)
+                vcfg.update(pattern="text", text=a.word, obstacle="none", cell=20, balls=None, split_every=0)
+            name = f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4"
+            path = os.path.join(run_dir, name)
+            print(f"[{i + 1}/{count}] rendering {name}")
+            meta = gen.make_video(vcfg, path)
+            if meta["duration"] <= too_long or attempt == 2:
+                break
+            print(f"  {meta['duration']:.0f}s is too long (> {too_long:.0f}s); re-rolling")
+            os.remove(path)
         caps = build_captions(meta, cfg, master)
         if a.text:
             caps["x"]["text"] = a.text  # your words only; no hashtags (they look spammy on a reply-style quote)
