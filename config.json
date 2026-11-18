@@ -3,6 +3,7 @@
   "min_len_sec": 30,
   "max_len_sec": 75,
   "game_over_share": 0.3,
+  "battle_share": 0.3,
   "max_brick_px": 30,
   "recent_hooks_to_avoid": 10,
   "youtube": {

@@ -27,6 +27,11 @@ on:
       word:
         description: "Spell a word in bricks, e.g. MONDAY (blank = random shape)"
         default: ""
+      style:
+        description: "Video style (auto = mix of normal and color battles)"
+        type: choice
+        options: [auto, normal, battle]
+        default: auto
       platforms:
         description: "Where to post"
         type: choice
@@ -85,9 +90,10 @@ jobs:
           IN_ENDING: ${{ inputs.ending || 'any' }}
           IN_WORD: ${{ inputs.word }}
           IN_PLATFORMS: ${{ inputs.platforms || 'all' }}
+          IN_STYLE: ${{ inputs.style || 'auto' }}
         run: |
           python pipeline.py --count "$IN_COUNT" --quote "$IN_QUOTE" --text "$IN_TEXT" \
-            --ending "$IN_ENDING" --word "$IN_WORD" --platforms "$IN_PLATFORMS"
+            --ending "$IN_ENDING" --word "$IN_WORD" --platforms "$IN_PLATFORMS" --style "$IN_STYLE"
 
       - name: Save post log to the repo
         if: always()

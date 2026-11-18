@@ -22,7 +22,13 @@ them, ~500K–22M views).
     title but not drawn; results (time, bricks left, % cleared) only appear on the end card.
   - `--batch N` randomizes everything; `--preview` saves stills; seeds reproduce runs.
   - `make_video()` returns metadata; `default_cfg()` / `random_cfg()` are shared helpers.
-- `pipeline.py` – `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
+- `battle.py` – COLOR BATTLES: split-screen race, two teams (RED/BLUE/GREEN/PURPLE/GOLD) with identical walls,
+  closed floor, same balls+speed; only bounce seeds differ. Tuner runs 12 seeds headlessly and picks the pair
+  with the closest finish (0.4–8 s gap) and most lead changes near the target length; winner color random.
+  Stereo audio (each team panned to its side), team-colored balls/paddles, names on top, "RED WINS!" card.
+  Uses gen.Layout(margins=...), Renderer.ball_color. `python3 battle.py --target 45 --out b.mp4`.
+- `pipeline.py` – `--style auto|normal|battle` (auto = battle with probability config `battle_share`, 0.3);
+  `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
   JSON + `run_log.json` + GitHub step summary, posts to each platform whose secrets exist.
   DRY RUN by default; `--live` or `AUTOPOST_LIVE=true` posts for real.
   Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and

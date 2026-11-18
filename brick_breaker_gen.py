@@ -49,6 +49,7 @@ PALETTES = {  # (top color, bottom color) - bricks fade between them by row
     "mint": ((60, 230, 170), (20, 150, 140)),
     "grape": ((190, 110, 255), (100, 45, 210)),
     "gold": ((255, 220, 90), (240, 140, 40)),
+    "blue": ((80, 160, 255), (40, 70, 225)),
     "rainbow": None,
 }
 
@@ -62,7 +63,7 @@ def font(size):
 
 # --------------------------------------------------------------------------- layout
 class Layout:
-    def __init__(self, W=1080, H=1920, cell=20):
+    def __init__(self, W=1080, H=1920, cell=20, margins=None):
         self.W, self.H, self.cell = W, H, cell
         self.hud = 0  # no on-screen HUD
         # Safe margins (plain background) for vertical video: phones are taller than 9:16 (~19.5:9), so
@@ -71,9 +72,13 @@ class Layout:
         mx = int(W * 0.115) if vert else 0
         mt = int(H * 0.04) if vert else 0
         mb = int(H * 0.06) if vert else 0
-        self.cols = (W - 2 * mx) // cell
+        if margins is not None:  # (left, right, top, bottom) in px, e.g. one half of a split-screen battle
+            ml, mr, mt, mb = margins
+        else:
+            ml = mr = mx
+        self.cols = (W - ml - mr) // cell
         self.rows = (H - mt - mb) // cell
-        self.ox = (W - self.cols * cell) // 2
+        self.ox = ml + (W - ml - mr - self.cols * cell) // 2
         self.oy = mt + (H - mt - mb - self.rows * cell) // 2
         self.brick_top = 5
         self.brick_bot = int(self.rows * 0.64)
@@ -420,6 +425,7 @@ class Renderer:
     def __init__(self, L, sim, palette, title, hp_max):
         self.L, self.sim, self.title, self.hp_max = L, sim, title, max(1, hp_max)
         self.palette = palette
+        self.ball_color = (255, 255, 255)
         self.board = np.zeros((L.H, L.W, 3), np.uint8)
         self.board[:] = self.BG
         for r in range(L.rows):
@@ -511,9 +517,9 @@ class Renderer:
         for i, old in enumerate(self.trail):
             a = 0.10 + 0.08 * i
             for x, y in old:
-                self._blend_ball(f, x, y, a)
+                self._blend_ball(f, x, y, a, self.ball_color)
         for x, y in pos:
-            self._blend_ball(f, x, y, 1.0)
+            self._blend_ball(f, x, y, 1.0, self.ball_color)
         self.trail.append(pos)
         if overlay is not None:
             img, a = overlay

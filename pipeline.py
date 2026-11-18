@@ -27,6 +27,7 @@ import traceback
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import battle  # noqa: E402
 import brick_breaker_gen as gen  # noqa: E402
 from publishers import youtube, x  # noqa: E402
 
@@ -58,6 +59,10 @@ HOOKS = {
     "funnel": ["Everything has to go through the funnel", "The funnel decides everything"],
     "pillars": ["{count} bricks behind the pillars", "Can it get around the pillars?"],
     "shelves": ["Can it reach the top shelf?", "{count} bricks stacked on shelves"],
+    # color battles: invite people to pick a side (comments are what the algorithms reward)
+    "battle": ["{a} or {b}? Pick before it starts", "{a} vs {b}. Comment your pick", "Which color clears first?",
+               "{a} vs {b}. No switching sides", "Same bricks, same start. Who wins?", "Pick a side: {a} or {b}",
+               "{a} vs {b}. This one goes down to the wire"],
 }
 
 
@@ -72,6 +77,11 @@ def recent_hooks(n):
 
 
 def pick_hook(meta, vcfg, cfg, rng, avoid):
+    if meta.get("mode") == "battle":
+        a, b = (t.title() for t in meta["teams"])
+        options = sorted({h.format(a=a, b=b) for h in HOOKS["battle"]})
+        fresh = [h for h in options if h not in avoid] or options
+        return rng.choice(fresh)
     outcome = "lose" if meta["outcome"] == "lose" else "win"
     pool = HOOKS["any"] + HOOKS[outcome] * 2
     if meta["start_balls"] == 1:
@@ -94,8 +104,15 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     b = meta["start_balls"]
     setup = f"{meta['bricks']:,} bricks. {b} starting ball{'s' if b != 1 else ''}"
     setup += f", plus 1 more every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."
-    yt_desc = "\n".join([hook, "", setup, "Missed balls are gone for good.", "",
-                          " ".join(cfg["youtube"]["hashtags"])])
+    if meta.get("mode") == "battle":
+        a, b = (t.title() for t in meta["teams"])
+        setup = (f"{a} vs {b}: same {meta['bricks']:,} bricks, same start, same speed. Only the bounces differ. "
+                 f"First side to clear wins.")
+        yt_desc = "\n".join([hook, "", setup, "Comment your pick before the end!", "",
+                              " ".join(cfg["youtube"]["hashtags"])])
+    else:
+        yt_desc = "\n".join([hook, "", setup, "Missed balls are gone for good.", "",
+                              " ".join(cfg["youtube"]["hashtags"])])
     # A/B test: only some X posts get hashtags (config x.hashtag_share); logged so views can be compared later.
     use_tags = rng.random() < cfg["x"].get("hashtag_share", 1.0)
     x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}" if use_tags else hook
@@ -114,6 +131,8 @@ def main():
     ap.add_argument("--text", default="", help="your own caption (default: a random hook)")
     ap.add_argument("--ending", default="any", choices=["any", "win", "lose"], help="force the ending")
     ap.add_argument("--word", default="", help="spell this word in bricks")
+    ap.add_argument("--style", default="auto", choices=["auto", "normal", "battle"],
+                    help="battle = split-screen color race; auto = battle with probability config battle_share")
     ap.add_argument("--platforms", default="all", help="comma list to post to, e.g. youtube or x,youtube (default all)")
     a = ap.parse_args()
     a.quote, a.text, a.word = a.quote.strip(), a.text.strip(), a.word.strip().upper()
@@ -157,11 +176,17 @@ def main():
                 vcfg.update(pattern="text", text=a.word, obstacle="none", cell=20, balls=None, split_every=0)
             last = attempt == 7
             vcfg["reject_over"] = None if last else too_long  # checked before rendering; last try renders anyway
-            name = f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4"
+            if attempt == 0:
+                is_battle = a.style == "battle" or (a.style == "auto" and not a.word
+                                                    and master.random() < cfg.get("battle_share", 0))
+            if is_battle:
+                vcfg = dict(seed=vcfg["seed"], target=vcfg["target"], reject_over=vcfg["reject_over"])
+            name = (f"{i + 1:02d}_battle_{vcfg['seed']}.mp4" if is_battle
+                    else f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4")
             path = os.path.join(run_dir, name)
             print(f"[{i + 1}/{count}] rendering {name}")
             try:
-                meta = gen.make_video(vcfg, path)
+                meta = battle.make_battle(vcfg, path) if is_battle else gen.make_video(vcfg, path)
             except gen.TooLong as e:
                 print(f"  skipped before rendering: {e}; re-rolling")
                 continue
@@ -235,12 +260,18 @@ def append_post_log(results, quote):
                         "peak_balls": v["peak_balls"], "file": os.path.basename(v["file"])})
 
 
+def ending_text(v):
+    if v.get("mode") == "battle":
+        return f"{v['outcome']} by {v['margin_s']}s"
+    return "cleared" if v["outcome"] == "win" else f"game over at {v['cleared_pct']}%"
+
+
 def write_captions(run_dir, results):
     """One file with every video's captions, for copy-pasting when posting by hand."""
     out = []
     for r in results:
         v, c = r["video"], r["captions"]
-        ending = "CLEARED" if v["outcome"] == "win" else f"GAME OVER at {v['cleared_pct']}%"
+        ending = ending_text(v).upper()
         out += [f"=== {os.path.basename(v['file'])}  ({v['duration']:.0f}s, {ending})",
                 "X caption:", c["x"]["text"], "",
                 "YouTube title:", c["youtube"]["title"], "", ""]
@@ -258,7 +289,7 @@ def write_summary(mode, results):
             s = p.get(k, {"status": "n/a"})
             return f"[posted]({s['url']})" if s["status"] == "posted" else s["status"]
 
-        ending = "cleared" if v["outcome"] == "win" else f"game over at {v['cleared_pct']}%"
+        ending = ending_text(v)
         lines.append(f"| {os.path.basename(v['file'])} | {v['duration']:.0f}s | {ending} | {cell('youtube')} | {cell('x')} |")
     text = "\n".join(lines)
     print(text)
