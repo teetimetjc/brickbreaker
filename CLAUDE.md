@@ -27,7 +27,13 @@ them, ~500K–22M views).
   with the closest finish (0.4–8 s gap) and most lead changes near the target length; winner color random.
   Stereo audio (each team panned to its side), team-colored balls/paddles, names on top, "RED WINS!" card.
   Uses gen.Layout(margins=...), Renderer.ball_color. `python3 battle.py --target 45 --out b.mp4`.
-- `pipeline.py` – `--style auto|normal|battle` (auto = battle with probability config `battle_share`, 0.3);
+- `escape.py` – BRICK ESCAPE: 4 balls (RED/YELLOW/BLUE/GREEN, colors shuffled per race) rise (LIFT) through
+  5–8 brick barriers to a checkered finish; neutral bricks break for all, team bricks only for that color,
+  balls bump each other. Tuner simulates ~14 seeds per course/speed and picks a close finish with lead changes
+  (lead = highest point reached). Themes: `dark` / `light` (random per video, logged as palette escape-<theme>
+  for the engagement A/B). Own physics + Painter (not gen.Sim). `python3 escape.py --theme light --out e.mp4`.
+- `pipeline.py` – `--style auto|normal|battle|escape` (auto mixes: config `battle_share` 0.3, `escape_share`
+  0.25, rest normal);
   `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
   JSON + `run_log.json` + GitHub step summary, posts to each platform whose secrets exist.
   DRY RUN by default; `--live` or `AUTOPOST_LIVE=true` posts for real.

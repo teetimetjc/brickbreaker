@@ -28,6 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import battle  # noqa: E402
+import escape  # noqa: E402
 import brick_breaker_gen as gen  # noqa: E402
 from publishers import youtube, x  # noqa: E402
 
@@ -63,6 +64,10 @@ HOOKS = {
     "battle": ["{a} or {b}? Pick before it starts", "{a} vs {b}. Comment your pick", "Which color clears first?",
                "{a} vs {b}. No switching sides", "Same bricks, same start. Who wins?", "Pick a side: {a} or {b}",
                "{a} vs {b}. This one goes down to the wire"],
+    # brick escape: 4 balls race to the finish line
+    "escape": ["Pick your ball 🔴🟡🔵🟢", "Which one escapes first? 🔴🟡🔵🟢", "Pick a color before it starts 🔴🟡🔵🟢",
+               "4 balls. 1 exit. Pick yours 🔴🟡🔵🟢", "Who breaks out first? 🔴🟡🔵🟢",
+               "Comment your color 🔴🟡🔵🟢 No switching!"],
 }
 
 
@@ -77,6 +82,9 @@ def recent_hooks(n):
 
 
 def pick_hook(meta, vcfg, cfg, rng, avoid):
+    if meta.get("mode") == "escape":
+        fresh = [h for h in HOOKS["escape"] if h not in avoid] or HOOKS["escape"]
+        return rng.choice(fresh)
     if meta.get("mode") == "battle":
         a, b = (t.title() for t in meta["teams"])
         options = sorted({h.format(a=a, b=b) for h in HOOKS["battle"]})
@@ -104,7 +112,11 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     b = meta["start_balls"]
     setup = f"{meta['bricks']:,} bricks. {b} starting ball{'s' if b != 1 else ''}"
     setup += f", plus 1 more every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."
-    if meta.get("mode") == "battle":
+    if meta.get("mode") == "escape":
+        yt_desc = "\n".join([hook, "", "Four balls race up through walls of bricks. Colored bricks only break for the "
+                              "ball of the same color. First one across the checkered line escapes.",
+                              "Comment your color before the end!", "", " ".join(cfg["youtube"]["hashtags"])])
+    elif meta.get("mode") == "battle":
         a, b = (t.title() for t in meta["teams"])
         setup = (f"{a} vs {b}: same {meta['bricks']:,} bricks, same start, same speed. Only the bounces differ. "
                  f"First side to clear wins.")
@@ -131,8 +143,9 @@ def main():
     ap.add_argument("--text", default="", help="your own caption (default: a random hook)")
     ap.add_argument("--ending", default="any", choices=["any", "win", "lose"], help="force the ending")
     ap.add_argument("--word", default="", help="spell this word in bricks")
-    ap.add_argument("--style", default="auto", choices=["auto", "normal", "battle"],
-                    help="battle = split-screen color race; auto = battle with probability config battle_share")
+    ap.add_argument("--style", default="auto", choices=["auto", "normal", "battle", "escape"],
+                    help="battle = split-screen color race, escape = 4-ball race to the finish; auto mixes them "
+                         "using config battle_share / escape_share")
     ap.add_argument("--platforms", default="all", help="comma list to post to, e.g. youtube or x,youtube (default all)")
     a = ap.parse_args()
     a.quote, a.text, a.word = a.quote.strip(), a.text.strip(), a.word.strip().upper()
@@ -177,16 +190,21 @@ def main():
             last = attempt == 7
             vcfg["reject_over"] = None if last else too_long  # checked before rendering; last try renders anyway
             if attempt == 0:
-                is_battle = a.style == "battle" or (a.style == "auto" and not a.word
-                                                    and master.random() < cfg.get("battle_share", 0))
-            if is_battle:
+                style = a.style
+                if style == "auto":
+                    roll = master.random()
+                    style = ("normal" if a.word else
+                             "battle" if roll < cfg.get("battle_share", 0) else
+                             "escape" if roll < cfg.get("battle_share", 0) + cfg.get("escape_share", 0) else "normal")
+            if style != "normal":
                 vcfg = dict(seed=vcfg["seed"], target=vcfg["target"], reject_over=vcfg["reject_over"])
-            name = (f"{i + 1:02d}_battle_{vcfg['seed']}.mp4" if is_battle
+            name = (f"{i + 1:02d}_{style}_{vcfg['seed']}.mp4" if style != "normal"
                     else f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4")
             path = os.path.join(run_dir, name)
             print(f"[{i + 1}/{count}] rendering {name}")
             try:
-                meta = battle.make_battle(vcfg, path) if is_battle else gen.make_video(vcfg, path)
+                meta = (battle.make_battle(vcfg, path) if style == "battle" else
+                        escape.make_escape(vcfg, path) if style == "escape" else gen.make_video(vcfg, path))
             except gen.TooLong as e:
                 print(f"  skipped before rendering: {e}; re-rolling")
                 continue
@@ -261,7 +279,7 @@ def append_post_log(results, quote):
 
 
 def ending_text(v):
-    if v.get("mode") == "battle":
+    if v.get("mode") in ("battle", "escape"):
         return f"{v['outcome']} by {v['margin_s']}s"
     return "cleared" if v["outcome"] == "win" else f"game over at {v['cleared_pct']}%"
 
