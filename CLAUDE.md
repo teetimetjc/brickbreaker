@@ -17,7 +17,8 @@ them, ~500K–22M views).
   - Endings: "CLEARED! in 0:39" or "GAME OVER – N bricks left • 93% cleared", each with its own sound.
   - `--target SECONDS` auto-tunes brick size, ball count/bonus balls and speed by running the deterministic
     sim headlessly, so the video ends near the target. `--outcome win|lose|any`.
-  - No on-screen HUD: the board fills the whole frame. The hook title is generated for captions/YouTube
+  - No on-screen HUD. Vertical videos keep a plain safe margin (11.5% each side, 4% top, 6% bottom) because
+    phones (~19.5:9) crop the sides of 9:16 video in full-screen and app buttons cover top/bottom. The hook title is generated for captions/YouTube
     title but not drawn; results (time, bricks left, % cleared) only appear on the end card.
   - `--batch N` randomizes everything; `--preview` saves stills; seeds reproduce runs.
   - `make_video()` returns metadata; `default_cfg()` / `random_cfg()` are shared helpers.

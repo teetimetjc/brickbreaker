@@ -64,11 +64,17 @@ def font(size):
 class Layout:
     def __init__(self, W=1080, H=1920, cell=20):
         self.W, self.H, self.cell = W, H, cell
-        self.hud = 0  # no on-screen HUD; the board fills the frame (end card still shows the result)
-        self.cols = W // cell
-        self.rows = (H - self.hud) // cell
+        self.hud = 0  # no on-screen HUD
+        # Safe margins (plain background) for vertical video: phones are taller than 9:16 (~19.5:9), so
+        # full-screen players crop ~9% off each side, and app buttons/captions overlap the top and bottom.
+        vert = H > W
+        mx = int(W * 0.115) if vert else 0
+        mt = int(H * 0.04) if vert else 0
+        mb = int(H * 0.06) if vert else 0
+        self.cols = (W - 2 * mx) // cell
+        self.rows = (H - mt - mb) // cell
         self.ox = (W - self.cols * cell) // 2
-        self.oy = self.hud + (H - self.hud - self.rows * cell) // 2
+        self.oy = mt + (H - mt - mb - self.rows * cell) // 2
         self.brick_top = 5
         self.brick_bot = int(self.rows * 0.64)
         self.paddle_row = self.rows - 6
