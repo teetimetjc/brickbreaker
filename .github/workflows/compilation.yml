@@ -1,0 +1,76 @@
+name: Weekly YouTube episode
+
+on:
+  schedule:
+    # Sundays 14:23 UTC ~ 8:23am Central (standard time): people put on background videos on weekend mornings.
+    - cron: "23 14 * * 0"
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "Upload to YouTube? (false = dry run, download the episode from the run page)"
+        default: "false"
+      minutes:
+        description: "Episode length in minutes (blank = just under 15)"
+        default: ""
+
+concurrency:
+  group: autopost  # shares the lock with the daily posts so data/posts.csv commits never collide
+  cancel-in-progress: false
+
+permissions:
+  contents: write  # to commit data/posts.csv
+
+jobs:
+  episode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install ffmpeg + Python packages
+        timeout-minutes: 12
+        run: |
+          for i in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update -y && \
+               timeout 180 sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends ffmpeg fonts-dejavu-core; then
+              break
+            fi
+            echo "apt attempt $i failed; retrying in 10s"; sleep 10
+          done
+          ffmpeg -version | head -1
+          pip install -r requirements.txt
+
+      - name: Render episode (and upload if live)
+        env:
+          # Scheduled runs upload by default. Pause with repo variable AUTOPOST_LIVE=false (same switch as daily posts).
+          AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE || 'true' }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          IN_MINUTES: ${{ inputs.minutes }}
+        run: |
+          if [ -n "$IN_MINUTES" ]; then python compilation.py --minutes "$IN_MINUTES"; else python compilation.py; fi
+
+      - name: Save post log to the repo
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/posts.csv
+            git commit -m "Log weekly episode from run ${{ github.run_number }}"
+            git pull --rebase -q && git push
+          fi
+
+      - name: Keep the episode (download from the run page)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: episode-${{ github.run_number }}
+          path: output/
+          retention-days: 14

@@ -32,6 +32,11 @@ them, ~500K–22M views).
   balls bump each other. Tuner simulates ~14 seeds per course/speed and picks a close finish with lead changes
   (lead = highest point reached). Themes: `dark` / `light` (random per video, logged as palette escape-<theme>
   for the engagement A/B). Own physics + Painter (not gen.Sim). `python3 escape.py --theme light --out e.mp4`.
+- `compilation.py` – WEEKLY LONG-FORM YouTube episode, widescreen 1920x1080, kept under 14:40 (YouTube needs a
+  phone-verified channel for >15 min). Fresh rounds (normal/battle/escape, via battle.configure /
+  escape.configure(1920,1080)) with "ROUND N" cards + running color leaderboard, outro with final standings,
+  chapters in the description, logged to posts.csv as pattern=compilation (episode number = count + 1).
+  Workflow `.github/workflows/compilation.yml`: Sundays 14:23 UTC, live by default like daily posts.
 - `pipeline.py` – `--style auto|normal|battle|escape` (auto mixes: config `battle_share` 0.3, `escape_share`
   0.25, rest normal);
   `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video

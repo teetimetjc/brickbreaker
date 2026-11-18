@@ -39,6 +39,16 @@ OBSTACLES = ["none", "none", "none", "pillars", "shelves"]
 CELLS = [16, 20, 24]
 
 
+def configure(w, h):
+    """Switch canvas size, e.g. configure(1920, 1080) for widescreen compilations. Default is 1080x1920."""
+    global W, H, HALF, M_OUT, M_MID, M_TOP, M_BOT
+    W, H, HALF = w, h, w // 2
+    if h > w:  # vertical: phone-crop safe sides, room for team names on top
+        M_OUT, M_MID, M_TOP, M_BOT = int(w * 0.115), 12, int(h * 0.085), int(h * 0.06)
+    else:      # widescreen: no crop to worry about
+        M_OUT, M_MID, M_TOP, M_BOT = int(w * 0.03), 14, int(h * 0.13), int(h * 0.04)
+
+
 def pick_teams(rng):
     if rng.random() < 0.5:
         return "RED", "BLUE"
@@ -133,7 +143,7 @@ def draw_label(ren, text, color):
     L = ren.L
     img = Image.fromarray(ren.board)
     d = ImageDraw.Draw(img)
-    f = gen.font(int(L.W * 0.13))
+    f = gen.font(min(int(L.W * 0.13), int(L.oy * 0.72)))  # fit the top margin (widescreen has less room)
     cx = L.ox + L.cols * L.cell / 2
     d.text((cx, L.oy / 2), text, font=f, fill=color, anchor="mm")
     ren.board = np.array(img)

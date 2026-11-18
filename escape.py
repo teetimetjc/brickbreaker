@@ -31,6 +31,24 @@ COLS = (W - 2 * M_SIDE) // CELL
 ROWS = (H - M_TOP - M_BOT) // CELL
 OX = (W - COLS * CELL) // 2
 OY = M_TOP + (H - M_TOP - M_BOT - ROWS * CELL) // 2
+LAYER_OPTIONS = [5, 6, 7, 8]
+
+
+def configure(w, h):
+    """Switch canvas size, e.g. configure(1920, 1080) for widescreen compilations. Default is 1080x1920."""
+    global W, H, M_SIDE, M_TOP, M_BOT, COLS, ROWS, OX, OY, LAYER_OPTIONS
+    W, H = w, h
+    if h > w:
+        M_SIDE, M_TOP, M_BOT = int(w * 0.115), int(h * 0.05), int(h * 0.06)
+        LAYER_OPTIONS = [5, 6, 7, 8]
+    else:  # wide and short course: fewer layers fit
+        M_SIDE, M_TOP, M_BOT = int(w * 0.03), int(h * 0.04), int(h * 0.04)
+        LAYER_OPTIONS = [3, 4, 5]
+    COLS = (W - 2 * M_SIDE) // CELL
+    ROWS = (H - M_TOP - M_BOT) // CELL
+    OX = (W - COLS * CELL) // 2
+    OY = M_TOP + (H - M_TOP - M_BOT - ROWS * CELL) // 2
+    _AudioLayout.brick_bot = ROWS - 9
 R_BALL = 0.8  # ball radius in cells
 LIFT = 0.06  # gentle upward pull per frame (as a fraction of speed): balls rise like bubbles
 
@@ -222,7 +240,7 @@ def run_race(g, hp, fr, st, seed, speed, cap):
 def tune(seed, target, verbose=True):
     rng = random.Random(seed * 13)
     best = None
-    for layers in rng.sample([5, 6, 7, 8], 4):
+    for layers in rng.sample(LAYER_OPTIONS, len(LAYER_OPTIONS)):
         g, hp, fr, st = build_course(seed, layers)
         for speed in (0.8, 1.1, 1.4, 1.7, 2.0):
             probe = run_race(g, hp, fr, st, seed + 1, speed, int(target * FPS * 2.5))
