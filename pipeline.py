@@ -53,9 +53,11 @@ def build_captions(meta, cfg, rng):
         "",
         " ".join(cfg["youtube"]["hashtags"]),
     ])
-    x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}"
+    # A/B test: only some X posts get hashtags (config x.hashtag_share); logged so views can be compared later.
+    use_tags = rng.random() < cfg["x"].get("hashtag_share", 1.0)
+    x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}" if use_tags else hook
     return {"youtube": {"title": yt_title, "description": yt_desc, "tags": cfg["youtube"]["tags"]},
-            "x": {"text": x_text}}
+            "x": {"text": x_text, "hook": hook, "hashtags": use_tags}}
 
 
 def main():
@@ -115,11 +117,12 @@ def main():
             os.remove(path)
         caps = build_captions(meta, cfg, master)
         if a.text:
+            caps["x"]["hook"], caps["x"]["hashtags"] = a.text, False
             caps["x"]["text"] = a.text  # your words only; no hashtags (they look spammy on a reply-style quote)
         if a.quote:
             caps["x"]["quote"] = a.quote
             if not a.text:
-                caps["x"]["text"] = caps["x"]["text"].split("\n")[0]
+                caps["x"]["text"], caps["x"]["hashtags"] = caps["x"]["hook"], False
         entry = {"video": meta, "captions": caps, "posts": {}}
 
         for pname, pub in publishers.items():
@@ -140,11 +143,41 @@ def main():
         results.append(entry)
 
     write_captions(run_dir, results)
+    if live:
+        append_post_log(results, a.quote)
     with open(os.path.join(run_dir, "run_log.json"), "w") as f:
         json.dump({"mode": mode, "time_utc": stamp, "results": results}, f, indent=2)
     write_summary(mode, results)
     if any(p.get("status") == "error" for r in results for p in r["posts"].values()):
         sys.exit(1)
+
+
+LOG_FIELDS = ["time_utc", "x_url", "youtube_url", "quote_of", "hook", "hashtags", "pattern", "obstacle", "palette",
+              "duration_s", "outcome", "cleared_pct", "bricks", "start_balls", "bonus_every", "peak_balls", "file"]
+
+
+def append_post_log(results, quote):
+    """Permanent record of every live post (data/posts.csv, committed by the workflow) for the view-count review."""
+    import csv
+    path = os.path.join(HERE, "data", "posts.csv")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=LOG_FIELDS)
+        if new:
+            w.writeheader()
+        for r in results:
+            v, c, p = r["video"], r["captions"]["x"], r["posts"]
+            urls = {k: p.get(k, {}).get("url", "") for k in ("x", "youtube")}
+            if not any(urls.values()):
+                continue
+            w.writerow({"time_utc": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M"),
+                        "x_url": urls["x"], "youtube_url": urls["youtube"], "quote_of": quote or "",
+                        "hook": c.get("hook", ""), "hashtags": "yes" if c.get("hashtags") else "no",
+                        "pattern": v["pattern"], "obstacle": v["obstacle"], "palette": v["palette"],
+                        "duration_s": round(v["duration"]), "outcome": v["outcome"], "cleared_pct": v["cleared_pct"],
+                        "bricks": v["bricks"], "start_balls": v["start_balls"], "bonus_every": v["bonus_every"],
+                        "peak_balls": v["peak_balls"], "file": os.path.basename(v["file"])})
 
 
 def write_captions(run_dir, results):

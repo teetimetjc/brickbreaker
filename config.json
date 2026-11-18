@@ -12,7 +12,8 @@
   },
 
   "x": {
-    "hashtags": ["#satisfying", "#oddlysatisfying"]
+    "hashtags": ["#satisfying", "#oddlysatisfying"],
+    "hashtag_share": 0.5
   },
 
   "captions": {

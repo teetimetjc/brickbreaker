@@ -32,6 +32,9 @@ concurrency:
   group: autopost
   cancel-in-progress: false
 
+permissions:
+  contents: write  # to commit data/posts.csv (the permanent post log)
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -78,6 +81,17 @@ jobs:
         run: |
           python pipeline.py --count "$IN_COUNT" --quote "$IN_QUOTE" --text "$IN_TEXT" \
             --ending "$IN_ENDING" --word "$IN_WORD"
+
+      - name: Save post log to the repo
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/posts.csv
+            git commit -m "Log posts from run ${{ github.run_number }}"
+            git pull --rebase -q && git push
+          fi
 
       - name: Keep the videos (download from the run page)
         if: always()

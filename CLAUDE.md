@@ -28,7 +28,11 @@ them, ~500K–22M views).
   Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and
   posts it to X only with `quote_tweet_id`. Word videos force no walls + 20px bricks so letters stay readable.
   The workflow's Run button has matching quote/text/ending/word boxes (passed via env vars, not inlined).
-- `config.json` – videos_per_run, length range (30–75 s), game_over_share (0.3), caption hooks, hashtags.
+- `config.json` – videos_per_run, length range (30–75 s), game_over_share (0.3), caption hooks, hashtags,
+  `x.hashtag_share` (0.5 = A/B test: half of X posts get hashtags, half don't).
+- `data/posts.csv` – permanent log of every LIVE post (URL, hook, hashtags yes/no, shape, length, ending...),
+  appended by pipeline.py and committed back by the workflow. Use it for the view-count review (~2–3 weeks
+  after 2026-11-18): fetch views per post (~$0.005 each) and compare hashtags vs none, hooks, length, ending.
 - `publishers/youtube.py` – YouTube Data API v3 resumable upload (YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN).
 - `publishers/x.py` – X API v2 chunked video upload + POST /2/tweets
   (OAuth 1.0a: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET).
@@ -50,7 +54,8 @@ them, ~500K–22M views).
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
 2. Run the workflow manually in dry-run mode; confirm videos appear as artifacts.
-3. X keys done + live test passed. Remaining: repo variable `AUTOPOST_LIVE=true` to turn on the schedule.
+3. X keys done + live tests passed. Schedule ON (repo variable AUTOPOST_LIVE=true set 2026-11-18).
+   The first 2 test posts (2026-11-18 ~01:05 and ~01:25 UTC) predate data/posts.csv; both had hashtags.
    Idea for later: daily shortlist of viral posts for Trevor to pick from for quote posts (never auto-quote).
 4. ~~Quote-tweet support on X~~ (built; untested against the real API until X keys exist). Semi-automatic only –
    Trevor picks the post. Don't auto-quote random strangers' posts at scale (spam risk).
