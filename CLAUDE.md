@@ -51,12 +51,12 @@ them, ~500K–22M views).
 - X account: @NoBrickLB (brand-new account; replaces the earlier idea of repurposing @brickbreakerrrr).
   X API: $5 pay-per-use credit (auto-recharge off), 4 OAuth 1.0a secrets in GitHub and working.
   YouTube: Google Cloud project "Meme Coin" (reused), OAuth client "nobrick-uploader" (Web app, redirect
-  developers.google.com/oauthplayground), refresh token from OAuth Playground. Consent screen is still in
-  TESTING (Publish needs home page + privacy policy links) -> refresh token EXPIRES ~2026-11-25; until the app is
-  published, redo the Playground step weekly and update YT_REFRESH_TOKEN. Uploads likely locked PRIVATE until audit.
-  Website: public repo teetimetjc/nobrick (index/privacy/terms, GitHub Pages from main root) ->
-  https://teetimetjc.github.io/nobrick/ . NEXT: Trevor enables Pages, fill Branding links + authorized domain
-  teetimetjc.github.io, Publish app, new refresh token, then apply for the YouTube API audit.
+  developers.google.com/oauthplayground). Consent screen PUBLISHED (In production) 2026-11-18 with Branding
+  links to the website, so the refresh token (re-made after publishing, from OAuth Playground) no longer expires
+  weekly. First API upload came out PUBLIC, so no YouTube audit applied for yet; apply only if uploads start
+  showing Private (the website covers the audit's privacy-policy requirement).
+  Website: public repo teetimetjc/nobrick (index/privacy/terms + .nojekyll, GitHub Pages from main root) ->
+  https://teetimetjc.github.io/nobrick/ (contact = X DMs, no email on the page).
   This session can't enable Pages or set repo variables (proxy blocks those GitHub API paths).
 
 ## Next steps
@@ -72,8 +72,8 @@ them, ~500K–22M views).
 6. Add TikTok and Instagram/Facebook Reels (Reels need 5–90 s).
 
 ## Constraints / gotchas
-- YouTube: unaudited API projects get uploads locked to PRIVATE – apply for the compliance audit or use an
-  audited posting service. Upload quota isn't the issue (100/day).
+- YouTube: unaudited API projects CAN get uploads locked to PRIVATE (not seen so far) – if it happens, apply for
+  the compliance audit or use an audited posting service. Upload quota isn't the issue (100/day).
 - YouTube "inauthentic content" policy: avoid mass-produced near-identical uploads. Keep 1–2 posts/day with
   lots of variety (shapes, obstacles, lengths, endings).
 - X API is pay-per-use: ~$0.015 per post, ~$0.20 if the post has a link – keep links out. Label the account
