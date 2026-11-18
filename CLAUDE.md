@@ -37,6 +37,8 @@ them, ~500K–22M views).
   escape.configure(1920,1080)) with "ROUND N" cards + running color leaderboard, outro with final standings,
   chapters in the description, logged to posts.csv as pattern=compilation (episode number = count + 1).
   Workflow `.github/workflows/compilation.yml`: Sundays 14:23 UTC, live by default like daily posts.
+  First full dry run on GitHub (2026-11-18): 13:38 long, 14 rounds, rendered in ~6.5 min, ~60 MB artifact.
+  First LIVE episode: Sunday 2026-11-22 unless Trevor pauses it.
 - `pipeline.py` – `--style auto|normal|battle|escape` (auto mixes: config `battle_share` 0.3, `escape_share`
   0.25, rest normal);
   `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
