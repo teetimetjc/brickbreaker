@@ -42,8 +42,8 @@ them, ~500K–22M views).
 - YouTube and X uploaders (incl. X quote posts) written but UNTESTED (no API keys yet).
 - GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
 - X account: @NoBrickLB (brand-new account; replaces the earlier idea of repurposing @brickbreakerrrr).
-  Trevor declined the paid X API for now (no free tier since Feb 2026; ~$0.015/post): posting BY HAND from
-  workflow artifacts to start. Revisit the API (~$1/mo at 2 posts/day) once the account is warmed up. YouTube channel not created yet.
+  X API: Trevor added $5 pay-per-use credit (keep auto-recharge off). Next: app with Read+Write, 4 keys ->
+  GitHub secrets, one live test run, then AUTOPOST_LIVE=true. YouTube channel not created yet.
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
