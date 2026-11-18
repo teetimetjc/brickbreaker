@@ -54,8 +54,10 @@ them, ~500K–22M views).
   developers.google.com/oauthplayground), refresh token from OAuth Playground. Consent screen is still in
   TESTING (Publish needs home page + privacy policy links) -> refresh token EXPIRES ~2026-11-25; until the app is
   published, redo the Playground step weekly and update YT_REFRESH_TOKEN. Uploads likely locked PRIVATE until audit.
-  NEXT: small public site (GitHub Pages) with home page + privacy policy -> fill Branding, Publish app, apply
-  for the YouTube API audit.
+  Website: public repo teetimetjc/nobrick (index/privacy/terms, GitHub Pages from main root) ->
+  https://teetimetjc.github.io/nobrick/ . NEXT: Trevor enables Pages, fill Branding links + authorized domain
+  teetimetjc.github.io, Publish app, new refresh token, then apply for the YouTube API audit.
+  This session can't enable Pages or set repo variables (proxy blocks those GitHub API paths).
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
