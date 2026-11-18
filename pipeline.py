@@ -71,6 +71,7 @@ def main():
     ap.add_argument("--text", default="", help="your own caption (default: a random hook)")
     ap.add_argument("--ending", default="any", choices=["any", "win", "lose"], help="force the ending")
     ap.add_argument("--word", default="", help="spell this word in bricks")
+    ap.add_argument("--platforms", default="all", help="comma list to post to, e.g. youtube or x,youtube (default all)")
     a = ap.parse_args()
     a.quote, a.text, a.word = a.quote.strip(), a.text.strip(), a.word.strip().upper()
     if a.quote:
@@ -79,7 +80,10 @@ def main():
     cfg = load_config(a.config)
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
     count = 1 if a.quote else (a.count or cfg["videos_per_run"])
-    publishers = {"x": x} if a.quote else PUBLISHERS
+    publishers = {"x": x} if a.quote else dict(PUBLISHERS)
+    if a.platforms.strip() not in ("", "all"):
+        want = {p.strip().lower() for p in a.platforms.split(",")}
+        publishers = {k: v for k, v in publishers.items() if k in want}
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
     run_dir = os.path.join(a.outdir, stamp)
     os.makedirs(run_dir, exist_ok=True)

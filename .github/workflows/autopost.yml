@@ -27,6 +27,11 @@ on:
       word:
         description: "Spell a word in bricks, e.g. MONDAY (blank = random shape)"
         default: ""
+      platforms:
+        description: "Where to post"
+        type: choice
+        options: [all, x, youtube]
+        default: all
 
 concurrency:
   group: autopost
@@ -79,9 +84,10 @@ jobs:
           IN_TEXT: ${{ inputs.text }}
           IN_ENDING: ${{ inputs.ending || 'any' }}
           IN_WORD: ${{ inputs.word }}
+          IN_PLATFORMS: ${{ inputs.platforms || 'all' }}
         run: |
           python pipeline.py --count "$IN_COUNT" --quote "$IN_QUOTE" --text "$IN_TEXT" \
-            --ending "$IN_ENDING" --word "$IN_WORD"
+            --ending "$IN_ENDING" --word "$IN_WORD" --platforms "$IN_PLATFORMS"
 
       - name: Save post log to the repo
         if: always()
