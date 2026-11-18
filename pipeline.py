@@ -131,11 +131,25 @@ def main():
             json.dump(entry, f, indent=2)
         results.append(entry)
 
+    write_captions(run_dir, results)
     with open(os.path.join(run_dir, "run_log.json"), "w") as f:
         json.dump({"mode": mode, "time_utc": stamp, "results": results}, f, indent=2)
     write_summary(mode, results)
     if any(p.get("status") == "error" for r in results for p in r["posts"].values()):
         sys.exit(1)
+
+
+def write_captions(run_dir, results):
+    """One file with every video's captions, for copy-pasting when posting by hand."""
+    out = []
+    for r in results:
+        v, c = r["video"], r["captions"]
+        ending = "CLEARED" if v["outcome"] == "win" else f"GAME OVER at {v['cleared_pct']}%"
+        out += [f"=== {os.path.basename(v['file'])}  ({v['duration']:.0f}s, {ending})",
+                "X caption:", c["x"]["text"], "",
+                "YouTube title:", c["youtube"]["title"], "", ""]
+    with open(os.path.join(run_dir, "captions.txt"), "w") as f:
+        f.write("\n".join(out))
 
 
 def write_summary(mode, results):

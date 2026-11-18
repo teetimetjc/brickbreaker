@@ -33,7 +33,8 @@ them, ~500K–22M views).
   (OAuth 1.0a: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET).
 - `scripts/get_youtube_token.py` – one-time OAuth helper that prints the YouTube refresh token.
 - `.github/workflows/autopost.yml` – GitHub Actions cron twice daily (~8am & 6pm Central), manual
-  "Run workflow" with count/live inputs, videos uploaded as artifacts (14 days).
+  "Run workflow" with count/live inputs, videos uploaded as artifacts (14 days). Each run also writes
+  `captions.txt` (all captions in one file) for posting by hand. Job timeout 150 min (~40 videos).
 - `README.md` – setup + go-live checklist.
 
 ## Status
@@ -41,7 +42,8 @@ them, ~500K–22M views).
 - YouTube and X uploaders (incl. X quote posts) written but UNTESTED (no API keys yet).
 - GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
 - X account: @NoBrickLB (brand-new account; replaces the earlier idea of repurposing @brickbreakerrrr).
-  Still to do: profile, "Automated" label, a few manual warm-up posts, developer app + keys -> GitHub secrets. YouTube channel not created yet.
+  Trevor declined the paid X API for now (no free tier since Feb 2026; ~$0.015/post): posting BY HAND from
+  workflow artifacts to start. Revisit the API (~$1/mo at 2 posts/day) once the account is warmed up. YouTube channel not created yet.
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
