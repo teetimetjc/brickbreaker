@@ -40,8 +40,8 @@ them, ~500K–22M views).
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
 - YouTube and X uploaders (incl. X quote posts) written but UNTESTED (no API keys yet).
 - GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
-- X account: @brickbreakerrrr (repurposed older account). Nothing set up on it yet: display name, profile,
-  "Automated" label, developer app/keys all still to do. YouTube channel not created yet.
+- X account: @NoBrickLB (brand-new account; replaces the earlier idea of repurposing @brickbreakerrrr).
+  Still to do: profile, "Automated" label, a few manual warm-up posts, developer app + keys -> GitHub secrets. YouTube channel not created yet.
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
