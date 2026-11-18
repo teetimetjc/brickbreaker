@@ -22,7 +22,7 @@ them, ~500K–22M views).
     title but not drawn; results (time, bricks left, % cleared) only appear on the end card.
   - `--batch N` randomizes everything; `--preview` saves stills; seeds reproduce runs.
   - `make_video()` returns metadata; `default_cfg()` / `random_cfg()` are shared helpers.
-- `pipeline.py` – renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
+- `pipeline.py` – `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
   JSON + `run_log.json` + GitHub step summary, posts to each platform whose secrets exist.
   DRY RUN by default; `--live` or `AUTOPOST_LIVE=true` posts for real.
   Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and
@@ -45,11 +45,17 @@ them, ~500K–22M views).
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
 - X posting WORKS (first live post 2026-11-18 via the v2 /initialize-/append-/finalize upload; the old
-  command=INIT form returned 401). X quote posts not yet tried live. YouTube uploader still untested.
+  command=INIT form returned 401). X quote posts not yet tried live. YouTube upload WORKS (first test 2026-11-18, channel @NoBrickLB on
+  nobrickleftbehind1@gmail.com; error 'youtubeSignupRequired' meant the account had no channel yet).
 - GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
 - X account: @NoBrickLB (brand-new account; replaces the earlier idea of repurposing @brickbreakerrrr).
   X API: $5 pay-per-use credit (auto-recharge off), 4 OAuth 1.0a secrets in GitHub and working.
-  Scheduled auto-posting is ON only once repo variable AUTOPOST_LIVE=true is set. YouTube channel not created yet.
+  YouTube: Google Cloud project "Meme Coin" (reused), OAuth client "nobrick-uploader" (Web app, redirect
+  developers.google.com/oauthplayground), refresh token from OAuth Playground. Consent screen is still in
+  TESTING (Publish needs home page + privacy policy links) -> refresh token EXPIRES ~2026-11-25; until the app is
+  published, redo the Playground step weekly and update YT_REFRESH_TOKEN. Uploads likely locked PRIVATE until audit.
+  NEXT: small public site (GitHub Pages) with home page + privacy policy -> fill Branding, Publish app, apply
+  for the YouTube API audit.
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
