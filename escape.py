@@ -338,7 +338,7 @@ class Painter:
         return f
 
 
-def end_card(theme, winner, gap, teams=TEAMS):
+def end_card(theme, winner, gap, teams=TEAMS, extras=None):
     th = THEMES[theme]
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -354,6 +354,7 @@ def end_card(theme, winner, gap, teams=TEAMS):
            stroke_width=max(2, size // 22), stroke_fill=(20, 20, 26))
     sub = "by a hair!" if gap < 0.6 else f"by {gap:.1f} seconds"
     d.text((W / 2, y0 + bh * 0.66), sub, font=gen.font(int(W * 0.05)), fill=th["sub"], anchor="mt")
+    gen.draw_card_extras(d, W, y0 + bh + int(W * 0.04), extras, light=theme == "light", winner=name)
     arr = np.array(img).astype(np.float32)
     return arr[..., :3], arr[..., 3:] / 255.0
 
@@ -403,7 +404,7 @@ def make_escape(cfg, out_path=None, preview=None, verbose=True):
         total += 1
     end_frame = race.frame
     winner = race.winner if race.winner is not None else win
-    card = end_card(theme, winner, gap, teams)
+    card = end_card(theme, winner, gap, teams, cfg.get("card_extras"))
     race.changed = []
     for i in range(int(2.5 * FPS)):
         enc.stdin.write(pnt.frame((card[0], card[1] * min(1.0, i / 8))).tobytes())

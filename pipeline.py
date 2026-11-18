@@ -71,6 +71,31 @@ HOOKS = {
 }
 
 
+def season_of(when):
+    """Seasons are calendar months; Season 1 = November 2026."""
+    return (when.year - 2026) * 12 + when.month - 10
+
+
+def season_standings(season):
+    """Race wins (battles + escapes) per color so far this season, from data/posts.csv."""
+    import csv
+    path = os.path.join(HERE, "data", "posts.csv")
+    wins = {}
+    if not os.path.exists(path):
+        return wins
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            out = (r.get("outcome") or "").split()
+            try:
+                when = dt.datetime.strptime(r["time_utc"], "%Y-%m-%d %H:%M")
+            except (KeyError, ValueError):
+                continue
+            if len(out) == 2 and out[1] in ("wins", "escapes") and season_of(when) == season:
+                color = {"GOLD": "YELLOW"}.get(out[0].upper(), out[0].upper())
+                wins[color] = wins.get(color, 0) + 1
+    return wins
+
+
 def recent_hooks(n):
     """Hooks of the last n live posts (data/posts.csv), so titles don't repeat back to back."""
     import csv
@@ -175,6 +200,10 @@ def main():
 
     results = []
     avoid = recent_hooks(cfg.get("recent_hooks_to_avoid", 10))
+    season = season_of(dt.datetime.now(dt.timezone.utc))
+    standings = season_standings(season)
+    sub_race = cfg.get("subscribe_text_race", "")
+    sub_normal = cfg.get("subscribe_text", "")
     for i in range(count):
         # The length tuner occasionally can't hit the target for a design (e.g. huge bricks + 1 ball) and
         # overshoots; re-roll a fresh design rather than post a 2-minute video.
@@ -198,6 +227,9 @@ def main():
                              "escape" if roll < cfg.get("battle_share", 0) + cfg.get("escape_share", 0) else "normal")
             if style != "normal":
                 vcfg = dict(seed=vcfg["seed"], target=vcfg["target"], reject_over=vcfg["reject_over"])
+                vcfg["card_extras"] = {"season": season, "standings": dict(standings), "subscribe": sub_race}
+            else:
+                vcfg["card_extras"] = {"subscribe": sub_normal} if sub_normal else None
             name = (f"{i + 1:02d}_{style}_{vcfg['seed']}.mp4" if style != "normal"
                     else f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4")
             path = os.path.join(run_dir, name)
@@ -212,6 +244,8 @@ def main():
                 break
             print(f"  {meta['duration']:.0f}s is too long (> {too_long:.0f}s); re-rolling")
             os.remove(path)
+        if meta.get("winner"):
+            standings[meta["winner"]] = standings.get(meta["winner"], 0) + 1
         caps = build_captions(meta, vcfg, cfg, master, avoid)
         avoid.append(caps["x"]["hook"])
         if a.text:

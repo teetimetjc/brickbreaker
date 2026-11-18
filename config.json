@@ -7,6 +7,8 @@
   "escape_share": 0.25,
   "max_brick_px": 30,
   "recent_hooks_to_avoid": 10,
+  "subscribe_text": "SUBSCRIBE FOR MORE",
+  "subscribe_text_race": "SUBSCRIBE FOR A NEW RACE EVERY DAY",
   "youtube": {
     "privacy": "public",
     "category_id": "24",

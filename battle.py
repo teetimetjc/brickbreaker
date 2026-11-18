@@ -32,7 +32,7 @@ TEAMS = {  # name -> (brick palette, ball/label color)
     "BLUE": ("blue", (95, 175, 255)),
     "GREEN": ("mint", (80, 235, 170)),
     "PURPLE": ("grape", (195, 125, 255)),
-    "GOLD": ("gold", (255, 210, 80)),
+    "YELLOW": ("gold", (255, 210, 80)),  # same name as in brick escapes, so season standings line up
 }
 PATTERNS = ["solid", "pyramid", "diamond", "heart", "circle", "checker", "stripes", "rings"]
 OBSTACLES = ["none", "none", "none", "pillars", "shelves"]
@@ -149,7 +149,7 @@ def draw_label(ren, text, color):
     ren.board = np.array(img)
 
 
-def end_card(winner, color, loser, left_bricks, gap):
+def end_card(winner, color, loser, left_bricks, gap, extras=None):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     bw, bh = int(W * 0.8), int(H * 0.17)
@@ -159,6 +159,7 @@ def end_card(winner, color, loser, left_bricks, gap):
     sub = f"{loser} had {left_bricks} brick{'s' if left_bricks != 1 else ''} left" if left_bricks > 3 \
         else f"by {gap:.1f} seconds"
     d.text((W / 2, y0 + bh * 0.66), sub, font=gen.font(int(W * 0.05)), fill=(225, 225, 235), anchor="mt")
+    gen.draw_card_extras(d, W, y0 + bh + int(W * 0.04), extras, winner=winner)
     arr = np.array(img).astype(np.float32)
     return arr[..., :3], arr[..., 3:] / 255.0
 
@@ -227,7 +228,7 @@ def make_battle(cfg, out_path=None, preview=None, verbose=True):
     winner = next((i for i, s in enumerate(sims) if s.done), win_side)
     loser = 1 - winner
     left = sims[loser].total - sims[loser].destroyed
-    card = end_card(teams[winner], TEAMS[teams[winner]][1], teams[loser], left, gap)
+    card = end_card(teams[winner], TEAMS[teams[winner]][1], teams[loser], left, gap, cfg.get("card_extras"))
     for s in sims:
         s.changed = []
     hold = int(2.5 * FPS)

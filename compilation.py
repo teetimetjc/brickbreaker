@@ -145,7 +145,7 @@ def render_round(kind, rng, path, target):
 
 
 def pick_battle_teams(rng):
-    return ("RED", "BLUE") if rng.random() < 0.6 else tuple(rng.sample(["RED", "BLUE", "GREEN", "PURPLE", "GOLD"], 2))
+    return ("RED", "BLUE") if rng.random() < 0.6 else tuple(rng.sample(["RED", "BLUE", "GREEN", "PURPLE", "YELLOW"], 2))
 
 
 def round_label(meta):

@@ -47,6 +47,10 @@ them, ~500K–22M views).
   Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and
   posts it to X only with `quote_tweet_id`. Word videos force no walls + 20px bricks so letters stay readable.
   The workflow's Run button has matching quote/text/ending/word boxes (passed via env vars, not inlined).
+- End cards (vertical): `gen.draw_card_extras` adds a red "SUBSCRIBE ..." pill (config subscribe_text /
+  subscribe_text_race) and, for battles/escapes, SEASON N STANDINGS (season = calendar month, Season 1 = Nov 2026;
+  wins counted from posts.csv outcomes "<color> wins/escapes" via pipeline.season_standings). Battle GOLD team
+  renamed YELLOW so battles and escapes share one leaderboard. Widescreen episodes don't use extras.
 - Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
   (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
   skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.

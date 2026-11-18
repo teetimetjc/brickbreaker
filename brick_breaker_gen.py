@@ -542,8 +542,59 @@ class Renderer:
             col = (255, 80, 90)
         d.text((L.W / 2, y0 + bh * 0.16), head, font=font(int(L.W * (0.11 if won else 0.1))), fill=(255, 255, 255), anchor="mt")
         d.text((L.W / 2, y0 + bh * 0.66), sub, font=font(int(L.W * 0.05)), fill=col, anchor="mt")
+        draw_card_extras(d, L.W, y0 + bh + int(L.W * 0.04), getattr(self, "card_extras", None))
         arr = np.array(img).astype(np.float32)
         return arr[..., :3], arr[..., 3:] / 255.0
+
+
+# --------------------------------------------------------------------------- end-card extras
+TEAM_RGB = {"RED": (255, 95, 95), "BLUE": (95, 175, 255), "GREEN": (80, 225, 150), "PURPLE": (195, 125, 255),
+            "YELLOW": (250, 210, 60)}
+
+
+def draw_card_extras(d, W, y, extras, light=False, winner=None):
+    """Below the result box: season standings (races only) and a subscribe line.
+    extras = {"season": n, "standings": {"RED": 3, ...} (wins BEFORE this video), "subscribe": "..."}"""
+    if not extras:
+        return
+    fill = (250, 250, 248, 240) if light else (10, 10, 14, 235)
+    muted = (110, 112, 124) if light else (140, 140, 155)
+    if extras.get("standings") is not None:
+        st = dict(extras["standings"])
+        if winner:
+            st[winner] = st.get(winner, 0) + 1
+        items = sorted(st.items(), key=lambda kv: (-kv[1], kv[0]))[:4]
+        bw, bh = int(W * 0.8), int(W * 0.2)
+        x0 = (W - bw) // 2
+        d.rounded_rectangle((x0, y, x0 + bw, y + bh), radius=30, fill=fill)
+        d.text((W / 2, y + bh * 0.27), f"SEASON {extras.get('season', 1)} STANDINGS", font=font(int(W * 0.032)),
+               fill=muted, anchor="mm")
+        sep = "  \u2022  "
+        size = int(W * 0.05)
+        while True:
+            f = font(size)
+            parts = [(f"{n.title()} {k}", TEAM_RGB.get(n, (230, 230, 240))) for n, k in items]
+            total = sum(d.textlength(t, font=f) for t, _ in parts) + d.textlength(sep, font=f) * (len(parts) - 1)
+            if total <= bw * 0.92 or size < 20:
+                break
+            size -= 2
+        x = W / 2 - total / 2
+        for i, (txt, col) in enumerate(parts):
+            d.text((x, y + bh * 0.66), txt, font=f, fill=col, anchor="lm",
+                   stroke_width=2 if light else 0, stroke_fill=(30, 30, 36))
+            x += d.textlength(txt, font=f)
+            if i < len(parts) - 1:
+                d.text((x, y + bh * 0.66), sep, font=f, fill=muted, anchor="lm")
+                x += d.textlength(sep, font=f)
+        y += bh + int(W * 0.035)
+    if extras.get("subscribe"):
+        f = font(int(W * 0.038))
+        txt = extras["subscribe"]
+        tw = d.textlength(txt, font=f)
+        ph = int(W * 0.085)
+        d.rounded_rectangle((W / 2 - tw / 2 - W * 0.04, y, W / 2 + tw / 2 + W * 0.04, y + ph), radius=ph // 2,
+                            fill=(225, 35, 45, 245))
+        d.text((W / 2, y + ph / 2), txt, font=f, fill=(255, 255, 255), anchor="mm")
 
 
 # --------------------------------------------------------------------------- audio
@@ -692,6 +743,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
     if verbose:
         print(f"  title: {title}")
     ren = Renderer(L, sim, cfg["palette"], title, cfg["hp"])
+    ren.card_extras = cfg.get("card_extras")
     max_frames = int(cfg["max_len"] * FPS)
     hold = int(2.5 * FPS)
 
