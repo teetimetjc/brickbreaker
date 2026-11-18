@@ -39,16 +39,18 @@ them, ~500K–22M views).
 
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
-- YouTube and X uploaders (incl. X quote posts) written but UNTESTED (no API keys yet).
+- X posting WORKS (first live post 2026-11-18 via the v2 /initialize-/append-/finalize upload; the old
+  command=INIT form returned 401). X quote posts not yet tried live. YouTube uploader still untested.
 - GitHub repo: teetimetjc/brickbreaker (private), `main` branch.
 - X account: @NoBrickLB (brand-new account; replaces the earlier idea of repurposing @brickbreakerrrr).
-  X API: Trevor added $5 pay-per-use credit (keep auto-recharge off). Next: app with Read+Write, 4 keys ->
-  GitHub secrets, one live test run, then AUTOPOST_LIVE=true. YouTube channel not created yet.
+  X API: $5 pay-per-use credit (auto-recharge off), 4 OAuth 1.0a secrets in GitHub and working.
+  Scheduled auto-posting is ON only once repo variable AUTOPOST_LIVE=true is set. YouTube channel not created yet.
 
 ## Next steps
 1. ~~Create a GitHub repo and push~~ (done: teetimetjc/brickbreaker).
 2. Run the workflow manually in dry-run mode; confirm videos appear as artifacts.
-3. When keys exist: `gh secret set` for each, one manual live run, then repo variable `AUTOPOST_LIVE=true`.
+3. X keys done + live test passed. Remaining: repo variable `AUTOPOST_LIVE=true` to turn on the schedule.
+   Idea for later: daily shortlist of viral posts for Trevor to pick from for quote posts (never auto-quote).
 4. ~~Quote-tweet support on X~~ (built; untested against the real API until X keys exist). Semi-automatic only –
    Trevor picks the post. Don't auto-quote random strangers' posts at scale (spam risk).
 5. Decide: posting service (Upload-Post / Blotato / Ayrshare, ~$20–30/mo, already audited for
