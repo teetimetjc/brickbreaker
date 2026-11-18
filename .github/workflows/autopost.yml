@@ -63,8 +63,9 @@ jobs:
 
       - name: Render and post
         env:
-          # Scheduled runs go live only when the AUTOPOST_LIVE repo variable is "true".
-          AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE }}
+          # Scheduled runs POST by default. To pause posting, set repo variable AUTOPOST_LIVE=false
+          # (Settings > Secrets and variables > Actions > Variables) or disable the workflow.
+          AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE || 'true' }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}

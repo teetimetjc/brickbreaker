@@ -14,10 +14,12 @@ scripts/get_youtube_token.py  one-time helper to get the YouTube refresh token
 
 ## How it runs
 
-* **Dry run (default):** renders the videos and captions and posts nothing. On GitHub, each run's videos can be
+* **Scheduled runs post for real** (twice a day) to every platform whose secrets exist, so X can be on while
+  YouTube isn't set up yet. **To pause posting:** set the repo variable `AUTOPOST_LIVE` to `false`
+  (Settings -> Secrets and variables -> Actions -> Variables), or disable the workflow on the Actions tab.
+* **Manual runs** (Run workflow button) are dry runs unless you set live = `true`. Each run's videos can be
   downloaded from the run page (Actions -> the run -> Artifacts) for 14 days.
-* **Live:** set the repo variable `AUTOPOST_LIVE` to `true`. Each platform posts only if its secrets exist, so you
-  can turn on X first and YouTube later.
+* Every live post is logged in `data/posts.csv` (kept permanently) for comparing views later.
 * A failed post on one platform doesn't stop the other. The run is marked failed so you get GitHub's email.
 
 Local test: `pip install -r requirements.txt` (plus ffmpeg), then `python3 pipeline.py --count 2`.
@@ -49,7 +51,7 @@ Local test: `pip install -r requirements.txt` (plus ffmpeg), then `python3 pipel
 
 **Go live**
 - [ ] Run workflow manually with live = true, count = 1; check both posts
-- [ ] Set repo variable `AUTOPOST_LIVE=true` so the twice-daily schedule posts for real
+- [x] Twice-daily schedule posts for real (pause with repo variable `AUTOPOST_LIVE=false`)
 - [ ] After a week: check which shapes/lengths/endings get the most views and adjust `config.json`
 
 ## Quote-posting a viral post on X
