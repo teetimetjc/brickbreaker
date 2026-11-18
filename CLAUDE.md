@@ -28,7 +28,11 @@ them, ~500K–22M views).
   Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and
   posts it to X only with `quote_tweet_id`. Word videos force no walls + 20px bricks so letters stay readable.
   The workflow's Run button has matching quote/text/ending/word boxes (passed via env vars, not inlined).
-- `config.json` – videos_per_run, length range (30–75 s), game_over_share (0.3), caption hooks, hashtags,
+- Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
+  (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
+  skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.
+- `config.json` – videos_per_run, length range (30–75 s), game_over_share (0.3), `max_brick_px` (30: no
+  chunky bricks), `recent_hooks_to_avoid` (10), hashtags,
   `x.hashtag_share` (0.5 = A/B test: half of X posts get hashtags, half don't).
 - `data/posts.csv` – permanent log of every LIVE post (URL, hook, hashtags yes/no, shape, length, ending...),
   appended by pipeline.py and committed back by the workflow. Use it for the view-count review (~2–3 weeks
@@ -80,4 +84,5 @@ them, ~500K–22M views).
   "Automated" in X settings.
 - TikTok: unaudited apps can only post privately (audit ~2–6 weeks).
 - Instagram: Business/Creator account linked to a Facebook Page + Meta app review; video must be at a public URL.
-- Targets under ~30 s force big chunky bricks; 30–75 s looks best.
+- Bricks are capped at 30 px (max_brick_px). The tuner raises gen.TooLong before rendering when cfg['reject_over']
+  is set and the predicted length is too long; pipeline re-rolls up to 8 designs (cheap, no render).

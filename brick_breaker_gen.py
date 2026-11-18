@@ -602,6 +602,10 @@ def build_audio(events, total_frames, L, end_frame, won, path, sr=44100):
 
 
 # --------------------------------------------------------------------------- driver
+class TooLong(Exception):
+    """Raised by make_video() when cfg['reject_over'] is set and the tuned run would be longer than that."""
+
+
 MAX_PX_PER_SEC = 1500  # fastest ball speed the tuner will use (keeps it watchable)
 CELL_SIZES = [20, 24, 30, 36, 45, 54]  # px; all divide 1080. Smaller = more bricks.
 
@@ -619,7 +623,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
               paddle_w=cfg["paddle_w"], lose=cfg["lose"], skill=cfg["skill"])
     sim_seed = cfg["seed"] + 1
     speed = cfg["speed"]
-    cells = [cfg["cell"]] if cfg["cell"] else CELL_SIZES
+    cells = [cfg["cell"]] if cfg["cell"] else [c for c in CELL_SIZES if c <= (cfg.get("max_cell") or 999)]
     outcome = cfg["outcome"] if cfg["lose"] else "win"
     if cfg["skill"] is None:
         kw["skill"] = cfg["skill"] = 0.85
@@ -667,6 +671,10 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
             got = f"ends ({res}) at {f / FPS:.1f}s" if f else "may not finish"
             sp_txt = f", +1 ball every {kw['split_every']} bricks" if kw["split_every"] else ""
             print(f"  bricks {cell}px, {kw['balls']} ball(s){sp_txt}, speed {speed:.2f} -> {got} (target {cfg['target']:.0f}s)")
+        # Let callers skip designs the tuner can't fit, before spending time rendering them.
+        limit = cfg.get("reject_over")
+        if limit and (not f or f / FPS > limit):
+            raise TooLong(f"predicted {'no finish' if not f else f'{f / FPS:.0f}s'} > {limit:.0f}s")
     else:
         kw["balls"] = kw["balls"] or 3
         L, grid, hp = setup_level(cfg, cells[0])
@@ -779,7 +787,7 @@ SIZES = {"vertical": (1080, 1920), "square": (1080, 1080), "landscape": (1920, 1
 def default_cfg(**over):
     """Every setting make_video() needs, with the CLI defaults. Override with keyword args."""
     cfg = dict(pattern="solid", text="WOW", obstacle="none", palette="red", balls=None, split_every=0,
-               max_balls=40, hp=1, paddle_w=None, vault_gap=2, cell=None, lose=True, outcome="win",
+               max_balls=40, hp=1, paddle_w=None, vault_gap=2, cell=None, max_cell=None, lose=True, outcome="win",
                skill=None, target=None, speed=None, max_len=180, title=None, size=SIZES["vertical"],
                outdir="out", seed=None)
     cfg.update(over)

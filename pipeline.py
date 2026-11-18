@@ -38,21 +38,64 @@ def load_config(path):
         return json.load(f)
 
 
-def build_captions(meta, cfg, rng):
-    """Captions tease the ending instead of spoiling it, so people watch to the end."""
-    pool = cfg["captions"]["lose" if meta["outcome"] == "lose" else "win"]
-    hook = rng.choice(pool)
-    on_screen = meta["title"]
-    yt_title = f"{on_screen} {' '.join(cfg['youtube']['hashtags'][:1])}".strip()[:100]
-    yt_desc = "\n".join([
-        hook,
-        "",
-        f"{meta['bricks']:,} bricks. {meta['start_balls']} starting ball(s)"
-        + (f", +1 ball every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."),
-        "Missed balls are gone for good.",
-        "",
-        " ".join(cfg["youtube"]["hashtags"]),
-    ])
+SHAPE_NAMES = {"solid": "wall", "checker": "checkerboard", "stripes": "stripes", "rings": "rings",
+               "heart": "heart", "circle": "circle", "diamond": "diamond", "pyramid": "pyramid"}
+
+# Hooks tease the ending, never spoil it. "win"/"lose" hooks only go on videos that really end that way.
+HOOKS = {
+    "any": ["Will it clear? Watch to the end", "{count} bricks vs {balls}", "Don't look away", "This one gets intense", "Turn the sound on for this one",
+            "{count} bricks. Place your bets."],
+    "win": ["Guess how long this takes", "Wait for the last brick", "Don't look away before 100%",
+            "How fast can it clear {count} bricks?", "Satisfying all the way to the last brick",
+            "Watch the {shape} disappear"],
+    "lose": ["Will it make it?", "Every miss costs a ball", "Guess the final %", "Don't drop the last ball...",
+             "How close can it get?", "Does it clear or run out of balls?"],
+    "single": ["Can 1 ball clear the {shape}?", "1 ball vs {count} bricks"],
+    "bonus": ["Every {k} bricks = 1 more ball", "It multiplies every {k} bricks...", "Watch it multiply",
+              "How many balls does it take?"],
+    "vault": ["Can {balls} break into the vault?", "Only one way in...", "One tiny gap. Can it get in?"],
+    "maze": ["Can it find a way through the maze?", "{count} bricks hidden in a maze"],
+    "funnel": ["Everything has to go through the funnel", "The funnel decides everything"],
+    "pillars": ["{count} bricks behind the pillars", "Can it get around the pillars?"],
+    "shelves": ["Can it reach the top shelf?", "{count} bricks stacked on shelves"],
+}
+
+
+def recent_hooks(n):
+    """Hooks of the last n live posts (data/posts.csv), so titles don't repeat back to back."""
+    import csv
+    path = os.path.join(HERE, "data", "posts.csv")
+    if n <= 0 or not os.path.exists(path):
+        return []
+    with open(path, newline="") as f:
+        return [r.get("hook", "") for r in csv.DictReader(f)][-n:]
+
+
+def pick_hook(meta, vcfg, cfg, rng, avoid):
+    outcome = "lose" if meta["outcome"] == "lose" else "win"
+    pool = HOOKS["any"] + HOOKS[outcome] * 2
+    if meta["start_balls"] == 1:
+        pool += HOOKS["single"] * 2
+    if meta["bonus_every"]:
+        pool += HOOKS["bonus"]
+    pool += HOOKS.get(vcfg.get("obstacle"), []) * 2
+    shape = vcfg.get("text") if vcfg.get("pattern") == "text" else SHAPE_NAMES.get(vcfg.get("pattern"), "wall")
+    b = meta["start_balls"]
+    fill = dict(count=f"{meta['bricks']:,}", shape=shape, k=meta["bonus_every"], balls=f"{b} ball{'s' if b != 1 else ''}")
+    options = sorted({h.format(**fill) for h in pool})
+    fresh = [h for h in options if h not in avoid] or options
+    return rng.choice(fresh)
+
+
+def build_captions(meta, vcfg, cfg, rng, avoid=()):
+    """One hook per video, chosen to fit how it really ends, used for both the YouTube title and the X post."""
+    hook = pick_hook(meta, vcfg, cfg, rng, set(avoid))
+    yt_title = f"{hook} {' '.join(cfg['youtube']['hashtags'][:1])}".strip()[:100]
+    b = meta["start_balls"]
+    setup = f"{meta['bricks']:,} bricks. {b} starting ball{'s' if b != 1 else ''}"
+    setup += f", plus 1 more every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."
+    yt_desc = "\n".join([hook, "", setup, "Missed balls are gone for good.", "",
+                          " ".join(cfg["youtube"]["hashtags"])])
     # A/B test: only some X posts get hashtags (config x.hashtag_share); logged so views can be compared later.
     use_tags = rng.random() < cfg["x"].get("hashtag_share", 1.0)
     x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}" if use_tags else hook
@@ -99,27 +142,35 @@ def main():
             sys.exit("quote mode needs the X keys (X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET)")
 
     results = []
+    avoid = recent_hooks(cfg.get("recent_hooks_to_avoid", 10))
     for i in range(count):
         # The length tuner occasionally can't hit the target for a design (e.g. huge bricks + 1 ball) and
         # overshoots; re-roll a fresh design rather than post a 2-minute video.
         too_long = cfg["max_len_sec"] * 1.3
-        for attempt in range(3):
-            vcfg = gen.random_cfg(master, gen.default_cfg(), cfg["min_len_sec"], cfg["max_len_sec"],
-                                  cfg["game_over_share"])
+        for attempt in range(8):
+            vcfg = gen.random_cfg(master, gen.default_cfg(max_cell=cfg.get("max_brick_px")), cfg["min_len_sec"],
+                                  cfg["max_len_sec"], cfg["game_over_share"])
             if a.ending != "any":
                 vcfg["lose"], vcfg["outcome"] = True, a.ending
             if a.word:
                 # no walls (they cut letters) and the smallest bricks (bigger ones make letters unreadable)
                 vcfg.update(pattern="text", text=a.word, obstacle="none", cell=20, balls=None, split_every=0)
+            last = attempt == 7
+            vcfg["reject_over"] = None if last else too_long  # checked before rendering; last try renders anyway
             name = f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4"
             path = os.path.join(run_dir, name)
             print(f"[{i + 1}/{count}] rendering {name}")
-            meta = gen.make_video(vcfg, path)
-            if meta["duration"] <= too_long or attempt == 2:
+            try:
+                meta = gen.make_video(vcfg, path)
+            except gen.TooLong as e:
+                print(f"  skipped before rendering: {e}; re-rolling")
+                continue
+            if meta["duration"] <= too_long or last:
                 break
             print(f"  {meta['duration']:.0f}s is too long (> {too_long:.0f}s); re-rolling")
             os.remove(path)
-        caps = build_captions(meta, cfg, master)
+        caps = build_captions(meta, vcfg, cfg, master, avoid)
+        avoid.append(caps["x"]["hook"])
         if a.text:
             caps["x"]["hook"], caps["x"]["hashtags"] = a.text, False
             caps["x"]["text"] = a.text  # your words only; no hashtags (they look spammy on a reply-style quote)
