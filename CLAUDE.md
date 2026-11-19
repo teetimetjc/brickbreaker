@@ -77,6 +77,8 @@ them, ~500K–22M views).
   One-time connect: approval link (scripts/tiktok_connect.py --url-for <client_key>) -> code on
   https://teetimetjc.github.io/nobrick/callback.html -> workflow "TikTok connect (one time)" with that code.
   Website URL prefix https://teetimetjc.github.io/nobrick/ verified in TikTok via tiktok<code>.txt in the nobrick repo.
+  CONNECTED 2026-11-19 (account NoBrickLB, sandbox client key sbawtpa3whgqbmlm53); first test draft reached the
+  inbox (status SEND_TO_USER_INBOX). Every scheduled post now also goes to TikTok drafts.
 - POSTING TIMES: cron-job.org (Trevor's account) POSTs workflow_dispatch for autopost.yml every 30 min during
   config.json `post_windows` (morning 07–11, evening 17–21 America/Chicago) with inputs live=true, window=auto.
   `scripts/gate.py` (runs first, after a fresh git pull of posts.csv) posts with prob 1/(knocks left) -> exactly
