@@ -52,6 +52,10 @@ them, ~500K–22M views).
   subscribe_text_race) and, for battles/escapes, SEASON N STANDINGS (season = calendar month, Season 1 = Nov 2026;
   wins counted from posts.csv outcomes "<color> wins/escapes" via pipeline.season_standings). Battle GOLD team
   renamed YELLOW so battles and escapes share one leaderboard. Widescreen episodes don't use extras.
+- VARIETY RULES (pipeline.recent_posts / pick_style / vary_battle / vary_normal, from posts.csv): never the same
+  style twice in a row (weights from battle_share/escape_share, last style excluded); battles never repeat the
+  previous matchup (Red vs Blue ~35% when allowed) and skip shapes from the last 3 battles; normal videos skip
+  shapes from the last 3 normals and the last obstacle. Added after 4 Red-vs-Blue battles in a row (2026-11-19).
 - Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
   (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
   skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.

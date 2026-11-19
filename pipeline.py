@@ -96,6 +96,65 @@ def season_standings(season):
     return wins
 
 
+def style_of(row):
+    pal = row.get("palette") or ""
+    if row.get("pattern") == "compilation":
+        return "episode"
+    return "battle" if "-vs-" in pal else "escape" if pal.startswith("escape") else "normal"
+
+
+def recent_posts(n=12):
+    """Last n live Shorts (oldest first) as dicts with a 'style' key, for the variety rules."""
+    import csv
+    path = os.path.join(HERE, "data", "posts.csv")
+    if not os.path.exists(path):
+        return []
+    with open(path, newline="") as f:
+        rows = [r for r in csv.DictReader(f) if style_of(r) != "episode"]
+    for r in rows:
+        r["style"] = style_of(r)
+    return rows[-n:]
+
+
+def pick_style(rng, cfg, recent):
+    """Weighted by config shares, but never the same style as the previous post."""
+    weights = {"battle": cfg.get("battle_share", 0), "escape": cfg.get("escape_share", 0)}
+    weights["normal"] = max(0.0, 1 - sum(weights.values()))
+    if recent:
+        weights[recent[-1]["style"]] = 0
+    total = sum(weights.values()) or 1
+    roll, acc = rng.random() * total, 0
+    for k, w in weights.items():
+        acc += w
+        if roll < acc:
+            return k
+    return "normal"
+
+
+def vary_battle(vcfg, rng, recent):
+    """Different color matchup than the last battle, and a shape not used in the last 3 battles."""
+    battles = [r for r in recent if r["style"] == "battle"]
+    last_pair = set(battles[-1]["palette"].upper().split("-VS-")) if battles else set()
+    colors = list(battle.TEAMS)
+    pairs = [(a, b) for i, a in enumerate(colors) for b in colors[i + 1:] if {a, b} != last_pair]
+    rb = ("RED", "BLUE")
+    vcfg["teams"] = rb if (set(rb) != last_pair and rng.random() < 0.35) else rng.choice(pairs)
+    if rng.random() < 0.5:
+        vcfg["teams"] = vcfg["teams"][::-1]
+    used = {r["pattern"] for r in battles[-3:]}
+    vcfg["pattern"] = rng.choice([p for p in battle.PATTERNS if p not in used] or battle.PATTERNS)
+
+
+def vary_normal(vcfg, rng, recent):
+    """Shape not used in the last 3 normal videos; walls different from the last one."""
+    normals = [r for r in recent if r["style"] == "normal"]
+    used = {r["pattern"] for r in normals[-3:]}
+    if vcfg["pattern"] in used:
+        vcfg["pattern"] = rng.choice([p for p in gen.PATTERNS if p != "text" and p not in used] or [vcfg["pattern"]])
+    if normals and vcfg["obstacle"] == normals[-1]["obstacle"]:
+        vcfg["obstacle"] = rng.choice([o for o in gen.OBSTACLES if o != vcfg["obstacle"]])
+
+
 def recent_hooks(n):
     """Hooks of the last n live posts (data/posts.csv), so titles don't repeat back to back."""
     import csv
@@ -226,6 +285,7 @@ def main():
 
     results = []
     avoid = recent_hooks(cfg.get("recent_hooks_to_avoid", 10))
+    recent = recent_posts()
     season = season_of(dt.datetime.now(dt.timezone.utc))
     standings = season_standings(season)
     sub_race = cfg.get("subscribe_text_race", "")
@@ -247,14 +307,15 @@ def main():
             if attempt == 0:
                 style = a.style
                 if style == "auto":
-                    roll = master.random()
-                    style = ("normal" if a.word else
-                             "battle" if roll < cfg.get("battle_share", 0) else
-                             "escape" if roll < cfg.get("battle_share", 0) + cfg.get("escape_share", 0) else "normal")
+                    style = "normal" if a.word else pick_style(master, cfg, recent)
             if style != "normal":
                 vcfg = dict(seed=vcfg["seed"], target=vcfg["target"], reject_over=vcfg["reject_over"])
                 vcfg["card_extras"] = {"season": season, "standings": dict(standings), "subscribe": sub_race}
+                if style == "battle":
+                    vary_battle(vcfg, master, recent)
             else:
+                if not a.word:
+                    vary_normal(vcfg, master, recent)
                 vcfg["card_extras"] = {"subscribe": sub_normal} if sub_normal else None
             name = (f"{i + 1:02d}_{style}_{vcfg['seed']}.mp4" if style != "normal"
                     else f"{i + 1:02d}_{vcfg['pattern']}_{vcfg['obstacle']}_{vcfg['seed']}.mp4")
@@ -272,6 +333,8 @@ def main():
             os.remove(path)
         if meta.get("winner"):
             standings[meta["winner"]] = standings.get(meta["winner"], 0) + 1
+        recent.append({"style": meta.get("mode") or "normal", "pattern": meta["pattern"],
+                       "obstacle": meta["obstacle"], "palette": meta["palette"]})
         caps = build_captions(meta, vcfg, cfg, master, avoid)
         avoid.append(caps["x"]["hook"])
         if a.text:
