@@ -153,8 +153,32 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     # A/B test: only some X posts get hashtags (config x.hashtag_share); logged so views can be compared later.
     use_tags = rng.random() < cfg["x"].get("hashtag_share", 1.0)
     x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}" if use_tags else hook
-    return {"youtube": {"title": yt_title, "description": yt_desc, "tags": cfg["youtube"]["tags"]},
-            "x": {"text": x_text, "hook": hook, "hashtags": use_tags}}
+    mode = meta.get("mode") or "normal"
+    yt = {"title": yt_title, "description": yt_desc, "tags": cfg["youtube"]["tags"],
+          "playlist": cfg["youtube"].get("playlists", {}).get(mode)}
+    if cfg["youtube"].get("comments"):
+        yt["comment"] = channel_comment(meta, rng)
+    return {"youtube": yt, "x": {"text": x_text, "hook": hook, "hashtags": use_tags}}
+
+
+def channel_comment(meta, rng):
+    """The channel's own first comment: a question that invites replies (replies push videos to more viewers)."""
+    if meta.get("mode") == "battle":
+        a, b = (t.title() for t in meta["teams"])
+        return rng.choice([f"Which side did you pick, {a} or {b}? Be honest if you switched 👀",
+                           f"{a} or {b}: who did you have before it started? Season standings are on the end card 🏆",
+                           f"Team {a} or Team {b}? Drop your color for the next battle 👇"])
+    if meta.get("mode") == "escape":
+        return rng.choice(["Which ball were you rooting for? 🔴🟡🔵🟢",
+                           "Did your color escape? Comment it for the next race 👇",
+                           "Pick your color for tomorrow's escape: 🔴🟡🔵🟢"])
+    if meta["outcome"] == "lose":
+        return rng.choice([f"{100 - meta['cleared_pct']}% away. Did you think it would make it? 😬",
+                           "So close! What % did you guess before the end?",
+                           "Should it get a rematch? 👇"])
+    return rng.choice(["What time did you guess before the end? ⏱️",
+                       "Most satisfying moment? Comment the timestamp 👇",
+                       "Which shape should we try next? 👇"])
 
 
 def main():

@@ -24,7 +24,14 @@
       "#shorts",
       "#satisfying",
       "#oddlysatisfying"
-    ]
+    ],
+    "playlists": {
+      "normal": "Satisfying Clears",
+      "battle": "Color Battles",
+      "escape": "Brick Escapes",
+      "episode": "Weekly Episodes"
+    },
+    "comments": true
   },
   "x": {
     "hashtags": [

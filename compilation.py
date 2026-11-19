@@ -280,7 +280,12 @@ def captions(ep, cfg):
     lines += ["", "New episode every week. Daily Shorts on the channel too.", "",
               "#satisfying #oddlysatisfying #brickbreaker"]
     tags = cfg["youtube"]["tags"] + ["compilation", "color battle", "marble race", "relaxing", "asmr game"]
-    return {"title": title[:100], "description": "\n".join(lines), "tags": tags}
+    comment = "Which color are you backing for next week's episode? 🔴🔵🟡🟢🟣"
+    if ep["wins"]:
+        comment = f"Final standings: {board}. Who takes it next week? Comment your color 👇"
+    return {"title": title[:100], "description": "\n".join(lines), "tags": tags,
+            "playlist": cfg["youtube"].get("playlists", {}).get("episode"),
+            "comment": comment if cfg["youtube"].get("comments") else None}
 
 
 def log_post(url, ep):
