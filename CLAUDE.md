@@ -110,7 +110,13 @@ them, ~500K–22M views).
    Trevor picks the post. Don't auto-quote random strangers' posts at scale (spam risk).
 5. Decide: posting service (Upload-Post / Blotato / Ayrshare, ~$20–30/mo, already audited for
    YouTube/TikTok/Meta) vs direct APIs. If a service, add a publisher for it.
-6. Add TikTok and Instagram/Facebook Reels (Reels need 5–90 s).
+6. TikTok STARTED 2026-11-19: website privacy/terms/home now mention TikTok (Content Posting API, own account
+   only). Trevor's TikTok signup hit "Couldn't create account" (anti-spam); retrying on another network / app /
+   Google sign-in. Next: developers.tiktok.com account -> app with Content Posting API -> audit (needs a screen
+   recording + description; unaudited apps post PRIVATE only). Creator Rewards only counts videos >1 min.
+   Then Instagram/Facebook Reels (5–90 s).
+   Pending from Trevor: redo OAuth Playground with scopes youtube.upload + youtube.force-ssl (playlists +
+   channel comment code is live and skips quietly until then).
 
 ## Constraints / gotchas
 - YouTube: unaudited API projects CAN get uploads locked to PRIVATE (not seen so far) – if it happens, apply for
