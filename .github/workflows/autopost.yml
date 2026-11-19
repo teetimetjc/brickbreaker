@@ -41,7 +41,7 @@ on:
       platforms:
         description: "Where to post"
         type: choice
-        options: [all, x, youtube]
+        options: [all, x, youtube, tiktok]
         default: all
 
 concurrency:
@@ -103,6 +103,8 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           # Inputs go through env vars, never pasted into the script, so odd characters in a caption can't break it.
           IN_COUNT: ${{ inputs.count || '1' }}
           IN_QUOTE: ${{ inputs.quote }}
@@ -121,7 +123,7 @@ jobs:
           if [ -n "$(git status --porcelain data/)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/posts.csv
+            git add data/
             git commit -m "Log posts from run ${{ github.run_number }}"
             git pull --rebase -q && git push
           fi

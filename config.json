@@ -54,5 +54,13 @@
     }
   ],
   "slot_minutes": 30,
-  "max_random_wait_minutes": 10
+  "max_random_wait_minutes": 10,
+  "tiktok": {
+    "hashtags": [
+      "#satisfying",
+      "#oddlysatisfying",
+      "#brickbreaker",
+      "#fyp"
+    ]
+  }
 }

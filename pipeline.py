@@ -30,9 +30,9 @@ sys.path.insert(0, HERE)
 import battle  # noqa: E402
 import escape  # noqa: E402
 import brick_breaker_gen as gen  # noqa: E402
-from publishers import youtube, x  # noqa: E402
+from publishers import tiktok, youtube, x  # noqa: E402
 
-PUBLISHERS = {"youtube": youtube, "x": x}
+PUBLISHERS = {"youtube": youtube, "x": x, "tiktok": tiktok}
 
 
 def load_config(path):
@@ -158,7 +158,9 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
           "playlist": cfg["youtube"].get("playlists", {}).get(mode)}
     if cfg["youtube"].get("comments"):
         yt["comment"] = channel_comment(meta, rng)
-    return {"youtube": yt, "x": {"text": x_text, "hook": hook, "hashtags": use_tags}}
+    tags_tt = " ".join(cfg.get("tiktok", {}).get("hashtags", []))
+    return {"youtube": yt, "x": {"text": x_text, "hook": hook, "hashtags": use_tags},
+            "tiktok": {"text": f"{hook} {tags_tt}".strip()}}  # inbox drafts can't carry it; shown in captions.txt
 
 
 def channel_comment(meta, rng):
@@ -350,23 +352,26 @@ def write_captions(run_dir, results):
         ending = ending_text(v).upper()
         out += [f"=== {os.path.basename(v['file'])}  ({v['duration']:.0f}s, {ending})",
                 "X caption:", c["x"]["text"], "",
-                "YouTube title:", c["youtube"]["title"], "", ""]
+                "YouTube title:", c["youtube"]["title"], "",
+                "TikTok caption (paste when you post the draft):", c.get("tiktok", {}).get("text", ""), "", ""]
     with open(os.path.join(run_dir, "captions.txt"), "w") as f:
         f.write("\n".join(out))
 
 
 def write_summary(mode, results):
     lines = [f"## Brick breaker autopost ({mode})", "",
-             "| Video | Length | Ending | YouTube | X |", "|---|---|---|---|---|"]
+             "| Video | Length | Ending | YouTube | X | TikTok |", "|---|---|---|---|---|---|"]
     for r in results:
         v, p = r["video"], r["posts"]
 
         def cell(k):
             s = p.get(k, {"status": "n/a"})
-            return f"[posted]({s['url']})" if s["status"] == "posted" else s["status"]
+            if s["status"] == "posted":
+                return "inbox draft" if str(s["url"]).startswith("tiktok-inbox") else f"[posted]({s['url']})"
+            return s["status"]
 
         ending = ending_text(v)
-        lines.append(f"| {os.path.basename(v['file'])} | {v['duration']:.0f}s | {ending} | {cell('youtube')} | {cell('x')} |")
+        lines.append(f"| {os.path.basename(v['file'])} | {v['duration']:.0f}s | {ending} | {cell('youtube')} | {cell('x')} | {cell('tiktok')} |")
     text = "\n".join(lines)
     print(text)
     if os.environ.get("GITHUB_STEP_SUMMARY"):

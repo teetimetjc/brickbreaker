@@ -70,6 +70,13 @@ them, ~500K–22M views).
 - `publishers/x.py` – X API v2 chunked video upload + POST /2/tweets
   (OAuth 1.0a: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET).
 - `scripts/get_youtube_token.py` – one-time OAuth helper that prints the YouTube refresh token.
+- `publishers/tiktok.py` – TikTok via a SANDBOX app (no review): Content Posting API "upload to inbox" (scope
+  video.upload) -> each video lands as a DRAFT in @nobricklb's TikTok inbox; Trevor adds sound + caption (from
+  captions.txt) and posts. Secrets TIKTOK_CLIENT_KEY/SECRET (sandbox creds). Tokens live in data/tiktok_token.enc
+  (Fernet, key = sha256 of client secret), refreshed automatically and committed by the workflow (git add data/).
+  One-time connect: approval link (scripts/tiktok_connect.py --url-for <client_key>) -> code on
+  https://teetimetjc.github.io/nobrick/callback.html -> workflow "TikTok connect (one time)" with that code.
+  Website URL prefix https://teetimetjc.github.io/nobrick/ verified in TikTok via tiktok<code>.txt in the nobrick repo.
 - POSTING TIMES: cron-job.org (Trevor's account) POSTs workflow_dispatch for autopost.yml every 30 min during
   config.json `post_windows` (morning 07–11, evening 17–21 America/Chicago) with inputs live=true, window=auto.
   `scripts/gate.py` (runs first, after a fresh git pull of posts.csv) posts with prob 1/(knocks left) -> exactly
