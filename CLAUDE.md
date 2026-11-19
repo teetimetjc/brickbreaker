@@ -36,7 +36,8 @@ them, ~500K–22M views).
   phone-verified channel for >15 min). Fresh rounds (normal/battle/escape, via battle.configure /
   escape.configure(1920,1080)) with "ROUND N" cards + running color leaderboard, outro with final standings,
   chapters in the description, logged to posts.csv as pattern=compilation (episode number = count + 1).
-  Workflow `.github/workflows/compilation.yml`: Sundays 14:23 UTC, live by default like daily posts.
+  Workflow `.github/workflows/compilation.yml`: main timer = 2nd cron-job.org job on Sunday mornings (window=auto ->
+  `--once-per-week` skips if an episode was posted in the last 6 days); GitHub cron Sun 15:23 UTC is backup. YouTube only.
   First full dry run on GitHub (2026-11-18): 13:38 long, 14 rounds, rendered in ~6.5 min, ~60 MB artifact.
   First LIVE episode: Sunday 2026-11-22 unless Trevor pauses it.
 - `pipeline.py` – `--style auto|normal|battle|escape` (auto mixes: config `battle_share` 0.3, `escape_share`

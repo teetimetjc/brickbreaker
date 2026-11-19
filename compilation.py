@@ -184,6 +184,24 @@ def fmt_ts(sec):
     return f"{sec // 60}:{sec % 60:02d}" if sec < 3600 else f"{sec // 3600}:{sec % 3600 // 60:02d}:{sec % 60:02d}"
 
 
+def posted_within(days):
+    path = os.path.join(HERE, "data", "posts.csv")
+    if not os.path.exists(path):
+        return False
+    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            if r.get("pattern") != "compilation":
+                continue
+            try:
+                t = dt.datetime.strptime(r["time_utc"], "%Y-%m-%d %H:%M").replace(tzinfo=dt.timezone.utc)
+            except (KeyError, ValueError):
+                continue
+            if t >= cutoff:
+                return True
+    return False
+
+
 def next_episode():
     path = os.path.join(HERE, "data", "posts.csv")
     if not os.path.exists(path):
@@ -287,7 +305,12 @@ def main():
     ap.add_argument("--minutes", type=float, default=None, help="shorter episode for testing")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--outdir", default=os.path.join(HERE, "output"))
+    ap.add_argument("--once-per-week", action="store_true",
+                    help="timer runs: do nothing if an episode was already posted in the last 6 days")
     a = ap.parse_args()
+    if a.once_per_week and posted_within(days=6):
+        print("== an episode was already posted this week; nothing to do")
+        return
     cfg = pipeline.load_config(os.path.join(HERE, "config.json"))
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S")

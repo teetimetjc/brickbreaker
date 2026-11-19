@@ -2,8 +2,9 @@ name: Weekly YouTube episode
 
 on:
   schedule:
-    # Sundays 14:23 UTC ~ 8:23am Central (standard time): people put on background videos on weekend mornings.
-    - cron: "23 14 * * 0"
+    # BACKUP. Main timer: cron-job.org starts this on Sunday mornings with window=auto (skips if this week's episode
+    # is already up). Sundays 15:23 UTC ~ 9:23am Central; GitHub may run it late or skip it.
+    - cron: "23 15 * * 0"
   workflow_dispatch:
     inputs:
       live:
@@ -11,6 +12,9 @@ on:
         default: "false"
       minutes:
         description: "Episode length in minutes (blank = just under 15)"
+        default: ""
+      window:
+        description: "Leave blank. cron-job.org sends 'auto' = skip if this week's episode is already up"
         default: ""
 
 concurrency:
@@ -53,8 +57,10 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           IN_MINUTES: ${{ inputs.minutes }}
+          ONCE: ${{ (github.event_name == 'schedule' || inputs.window != '') && '--once-per-week' || '' }}
         run: |
-          if [ -n "$IN_MINUTES" ]; then python compilation.py --minutes "$IN_MINUTES"; else python compilation.py; fi
+          git pull -q --ff-only origin main   # newest data/posts.csv for the once-a-week check
+          if [ -n "$IN_MINUTES" ]; then python compilation.py $ONCE --minutes "$IN_MINUTES"; else python compilation.py $ONCE; fi
 
       - name: Save post log to the repo
         if: always()
