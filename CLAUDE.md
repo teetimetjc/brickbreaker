@@ -69,7 +69,9 @@ them, ~500K–22M views).
   `scripts/gate.py` (runs first, after a fresh git pull of posts.csv) posts with prob 1/(knocks left) -> exactly
   one post per window at a uniformly random slot, plus 0–10 min random wait. GitHub's own crons (15:52/01:52 UTC)
   are only a backup through the same gate (GitHub ran schedules 7+ h late / skipped on 2026-11-18). Decided: 2
-  posts/day on both X and YouTube, consistent.
+  posts/day on both X and YouTube, consistent. cron-job.org job "NoBrick autopost" LIVE since 2026-11-19 01:22 UTC
+  (crontab 0,30 7-10,17-20 America/Chicago; headers Authorization Bearer <fine-grained PAT: brickbreaker only,
+  Actions read+write>, Accept, X-GitHub-Api-Version, Content-Type, User-Agent (required, else 403)). First knock: 204.
 - `.github/workflows/autopost.yml` – GitHub Actions (backup crons, see above), manual
   "Run workflow" with count/live inputs, videos uploaded as artifacts (14 days). Each run also writes
   `captions.txt` (all captions in one file) for posting by hand. Job timeout 150 min (~40 videos).
