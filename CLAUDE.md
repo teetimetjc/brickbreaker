@@ -121,7 +121,7 @@ them, ~500K–22M views).
    YouTube/TikTok/Meta) vs direct APIs. If a service, add a publisher for it.
 6. ~~TikTok~~ DONE 2026-11-19 via sandbox drafts (see publishers/tiktok.py); Trevor posts each draft in the app.
    Full auto would need the production app review (demo video of a posting UI) - only if TikTok takes off.
-   NEXT platform: Instagram/Facebook Reels (5–90 s).
+   Instagram/Facebook Reels: SKIPPED for now by Trevor (2026-11-19) - don't push it; revisit only if he asks.
    Pending from Trevor: redo OAuth Playground with scopes youtube.upload + youtube.force-ssl (playlists +
    channel comment code is live and skips quietly until then).
 
