@@ -64,7 +64,13 @@ them, ~500K–22M views).
 - `publishers/x.py` – X API v2 chunked video upload + POST /2/tweets
   (OAuth 1.0a: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET).
 - `scripts/get_youtube_token.py` – one-time OAuth helper that prints the YouTube refresh token.
-- `.github/workflows/autopost.yml` – GitHub Actions cron twice daily (~8am & 6pm Central), manual
+- POSTING TIMES: cron-job.org (Trevor's account) POSTs workflow_dispatch for autopost.yml every 30 min during
+  config.json `post_windows` (morning 07–11, evening 17–21 America/Chicago) with inputs live=true, window=auto.
+  `scripts/gate.py` (runs first, after a fresh git pull of posts.csv) posts with prob 1/(knocks left) -> exactly
+  one post per window at a uniformly random slot, plus 0–10 min random wait. GitHub's own crons (15:52/01:52 UTC)
+  are only a backup through the same gate (GitHub ran schedules 7+ h late / skipped on 2026-11-18). Decided: 2
+  posts/day on both X and YouTube, consistent.
+- `.github/workflows/autopost.yml` – GitHub Actions (backup crons, see above), manual
   "Run workflow" with count/live inputs, videos uploaded as artifacts (14 days). Each run also writes
   `captions.txt` (all captions in one file) for posting by hand. Job timeout 150 min (~40 videos).
 - `README.md` – setup + go-live checklist.

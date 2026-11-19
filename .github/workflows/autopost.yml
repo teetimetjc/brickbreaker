@@ -2,9 +2,12 @@ name: Brick breaker autopost
 
 on:
   schedule:
-    # Times are UTC. 14:07 UTC ~ 8:07am Central, 00:07 UTC ~ 6:07pm Central (standard time).
-    - cron: "7 14 * * *"
-    - cron: "7 0 * * *"
+    # BACKUP only. The main timer is cron-job.org, which starts this workflow every 30 min inside the posting
+    # windows (config.json post_windows) with window=auto; scripts/gate.py picks one random knock per window.
+    # These GitHub crons fire late in each window (~9:52am / ~7:52pm Central) and go through the same gate,
+    # so they only post if the window has no post yet. GitHub often runs schedules hours late or skips them.
+    - cron: "52 15 * * *"
+    - cron: "52 1 * * *"
   workflow_dispatch:  # "Run workflow" button for manual runs
     inputs:
       count:
@@ -32,6 +35,9 @@ on:
         type: choice
         options: [auto, normal, battle, escape]
         default: auto
+      window:
+        description: "Leave blank. cron-job.org sends 'auto' = post at a random time inside the current window"
+        default: ""
       platforms:
         description: "Where to post"
         type: choice
@@ -52,12 +58,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Random-time gate (timer runs only)
+        id: gate
+        if: github.event_name == 'schedule' || inputs.window != ''
+        run: |
+          git pull -q --ff-only origin main   # newest data/posts.csv, so a window never gets two posts
+          python3 scripts/gate.py
+
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.post != 'false'
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install ffmpeg + Python packages
+        if: steps.gate.outputs.post != 'false'
         # Normally ~25 s. Ubuntu's package mirrors occasionally hang, so cap each try and retry.
         timeout-minutes: 12
         run: |
@@ -71,7 +86,12 @@ jobs:
           ffmpeg -version | head -1
           pip install -r requirements.txt
 
+      - name: Random wait
+        if: steps.gate.outputs.post == 'true'
+        run: sleep ${{ steps.gate.outputs.sleep }}
+
       - name: Render and post
+        if: steps.gate.outputs.post != 'false'
         env:
           # Scheduled runs POST by default. To pause posting, set repo variable AUTOPOST_LIVE=false
           # (Settings > Secrets and variables > Actions > Variables) or disable the workflow.
@@ -107,7 +127,7 @@ jobs:
           fi
 
       - name: Keep the videos (download from the run page)
-        if: always()
+        if: always() && steps.gate.outputs.post != 'false'
         uses: actions/upload-artifact@v4
         with:
           name: videos-${{ github.run_number }}
