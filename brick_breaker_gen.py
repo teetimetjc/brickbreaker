@@ -385,7 +385,7 @@ def tune_speed(L, grid, hp, seed, target_s, kw, lo=0.6, hi=3.2, outcome="win"):
     def run(sp):
         nonlocal best
         f, res, pct = run_sim(L, grid, hp, seed, cap, speed=sp, **kw)
-        ok = res is not None and (outcome == "any" or res == outcome) and (res != "lose" or pct >= 0.7)
+        ok = res is not None and (outcome == "any" or res == outcome) and (res != "lose" or pct >= 0.85)
         e = abs(f - target) if ok else float("inf")
         if e < best[0]:
             best = (e, sp, f, res)
@@ -598,6 +598,26 @@ def draw_card_extras(d, W, y, extras, light=False, winner=None):
 
 
 # --------------------------------------------------------------------------- audio
+def cold_open(sims, max_s=3.0, frac=0.03):
+    """Run the first moments without recording, so frame 1 already shows bricks breaking (viewers decide in a
+    second whether to swipe). Steps all sims together until one has broken `frac` of its bricks (min 3) or
+    `max_s` seconds pass. Returns the number of skipped frames; earlier events are dropped."""
+    start = sims[0].frame
+    while sims[0].frame - start < max_s * FPS and not any(s.finished for s in sims):
+        if any(s.destroyed >= max(3, s.total * frac) for s in sims):
+            break
+        for s in sims:
+            s.step()
+    for s in sims:
+        s.events = []
+        s.changed = []
+    return sims[0].frame - start
+
+
+def shift_events(events, offset):
+    return [(f - offset, k, r) for f, k, r in events if f >= offset]
+
+
 def build_audio(events, total_frames, L, end_frame, won, path, sr=44100):
     n = int(total_frames / FPS * sr) + sr
     mix = np.zeros(n, np.float32)
@@ -685,7 +705,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
     if cfg["skill"] is None:
         kw["skill"] = cfg["skill"] = 0.85
     if outcome == "lose":  # paddle "chokes" near the end: fumbles a lot, no more bonus balls
-        kw["collapse_at"] = random.Random(cfg["seed"] * 3).uniform(0.82, 0.95)
+        kw["collapse_at"] = random.Random(cfg["seed"] * 3).uniform(0.88, 0.97)
 
     if cfg["target"] and speed is None:
         # Finest bricks first; then fewest balls; then try a few sim seeds until a run lands on target.
@@ -739,6 +759,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
     speed = speed or 0.9
 
     sim = Sim(L, grid, hp, random.Random(sim_seed), speed=speed, **kw)
+    pre = cold_open([sim]) if cfg.get("cold_open", True) else 0
     title = cfg["title"] or auto_title(cfg, sim.total)
     if verbose:
         print(f"  title: {title}")
@@ -774,12 +795,12 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
          "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
          "-pix_fmt", "yuv420p", tmp_v], stdin=subprocess.PIPE)
     total = 0
-    while not sim.finished and sim.frame < max_frames:
+    while not sim.finished and sim.frame - pre < max_frames:
         sim.step()
         enc.stdin.write(ren.frame().tobytes())
         total += 1
-    end_frame = sim.frame if sim.finished else None
-    card = ren.end_card(sim.frame // FPS, sim.done) if sim.finished else None
+    end_frame = sim.frame - pre if sim.finished else None
+    card = ren.end_card((sim.frame - pre) // FPS, sim.done) if sim.finished else None
     sim.changed = []
     for i in range(hold):
         ov = None
@@ -791,7 +812,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
     enc.stdin.close()
     if enc.wait() != 0:
         raise RuntimeError("ffmpeg video encode failed")
-    build_audio(sim.events, total, L, end_frame, sim.done, tmp_a)
+    build_audio(shift_events(sim.events, pre), total, L, end_frame, sim.done, tmp_a)
     r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp_v, "-i", tmp_a, "-map", "0:v", "-map", "1:a",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", tmp_o])
     if r.returncode != 0:

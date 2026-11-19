@@ -1,7 +1,7 @@
 {
   "videos_per_run": 1,
-  "min_len_sec": 30,
-  "max_len_sec": 75,
+  "min_len_sec": 20,
+  "max_len_sec": 45,
   "game_over_share": 0.3,
   "battle_share": 0.3,
   "escape_share": 0.25,

@@ -55,7 +55,12 @@ them, ~500K–22M views).
 - Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
   (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
   skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.
-- `config.json` – videos_per_run, length range (30–75 s), game_over_share (0.3), `max_brick_px` (30: no
+- WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
+  20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
+  broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
+  only when ≥85% cleared (paddle collapse_at 0.88–0.97). Normal videos reject ~50% of designs at these lengths
+  (cheap re-roll before rendering).
+- `config.json` – videos_per_run, length range (20–45 s), game_over_share (0.3), `max_brick_px` (30: no
   chunky bricks), `recent_hooks_to_avoid` (10), hashtags,
   `x.hashtag_share` (0.5 = A/B test: half of X posts get hashtags, half don't).
 - `data/posts.csv` – permanent log of every LIVE post (URL, hook, hashtags yes/no, shape, length, ending...),

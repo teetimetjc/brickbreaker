@@ -373,6 +373,11 @@ def make_escape(cfg, out_path=None, preview=None, verbose=True):
         raise gen.TooLong(f"predicted {t_win / FPS:.0f}s > {limit:.0f}s")
     g, hp, fr, st = build_course(cfg["seed"], layers)
     race = Race(g, hp, fr, st, sim_seed, speed)
+    pre = 0
+    if cfg.get("cold_open", True):  # start with the balls already spread out and climbing
+        while race.frame < FPS and race.winner is None:
+            race.step()
+        race.events, race.changed, pre = [], [], race.frame
     teams = rng.sample(TEAMS, 4)  # shuffle which color is which ball, so no color has a home advantage
     pnt = Painter(race, theme, teams)
     total_bricks = int(((g == BRICK) | (g >= TEAM0)).sum())
@@ -398,11 +403,11 @@ def make_escape(cfg, out_path=None, preview=None, verbose=True):
          "-pix_fmt", "yuv420p", tmp_v], stdin=subprocess.PIPE)
     total = 0
     cap = int(cfg.get("max_len", 180) * FPS)
-    while race.winner is None and race.frame < cap:
+    while race.winner is None and race.frame - pre < cap:
         race.step()
         enc.stdin.write(pnt.frame().tobytes())
         total += 1
-    end_frame = race.frame
+    end_frame = race.frame - pre
     winner = race.winner if race.winner is not None else win
     card = end_card(theme, winner, gap, teams, cfg.get("card_extras"))
     race.changed = []
@@ -412,7 +417,7 @@ def make_escape(cfg, out_path=None, preview=None, verbose=True):
     enc.stdin.close()
     if enc.wait() != 0:
         raise RuntimeError("ffmpeg video encode failed")
-    gen.build_audio(race.events, total, _AudioLayout, end_frame, True, tmp_a)
+    gen.build_audio(gen.shift_events(race.events, pre), total, _AudioLayout, end_frame, True, tmp_a)
     r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp_v, "-i", tmp_a, "-c:v", "copy",
                         "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", tmp_o])
     if r.returncode != 0:

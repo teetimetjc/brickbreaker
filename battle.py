@@ -179,13 +179,15 @@ def make_battle(cfg, out_path=None, preview=None, verbose=True):
     for side in (0, 1):
         L = layout(side, cell)
         grid, hp, _ = gen.build_level(L, cfg["pattern"], cfg["obstacle"], random.Random(cfg["seed"]), "", cfg["hp"])
-        sim = gen.Sim(L, grid, hp, random.Random(seeds[side]), **kw)
+        sims.append(gen.Sim(L, grid, hp, random.Random(seeds[side]), **kw))
+    pre = gen.cold_open(sims, max_s=2.5)  # same skip for both sides, so the race stays fair
+    for side, sim in enumerate(sims):
+        L = sim.L
         palette, color = TEAMS[teams[side]]
         ren = gen.Renderer(L, sim, palette, "", cfg["hp"])
         ren.ball_color = tuple(min(255, int(c * 0.6 + 255 * 0.4)) for c in color)
         ren.PADDLE = color
         draw_label(ren, teams[side], color)
-        sims.append(sim)
         rens.append(ren)
 
     def frame(overlay=None):
@@ -219,12 +221,12 @@ def make_battle(cfg, out_path=None, preview=None, verbose=True):
          "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
          "-pix_fmt", "yuv420p", tmp_v], stdin=subprocess.PIPE)
     total = 0
-    while not done() and sims[0].frame < max_frames:
+    while not done() and sims[0].frame - pre < max_frames:
         for s in sims:
             s.step()
         enc.stdin.write(frame().tobytes())
         total += 1
-    end_frame = sims[0].frame
+    end_frame = sims[0].frame - pre
     winner = next((i for i, s in enumerate(sims) if s.done), win_side)
     loser = 1 - winner
     left = sims[loser].total - sims[loser].destroyed
@@ -239,8 +241,8 @@ def make_battle(cfg, out_path=None, preview=None, verbose=True):
     if enc.wait() != 0:
         raise RuntimeError("ffmpeg video encode failed")
     # each team's sounds lean toward its side of the stereo field; only the winner plays the victory jingle
-    gen.build_audio(sims[0].events, total, sims[0].L, end_frame if winner == 0 else None, True, tmp_l)
-    gen.build_audio(sims[1].events, total, sims[1].L, end_frame if winner == 1 else None, True, tmp_r)
+    gen.build_audio(gen.shift_events(sims[0].events, pre), total, sims[0].L, end_frame if winner == 0 else None, True, tmp_l)
+    gen.build_audio(gen.shift_events(sims[1].events, pre), total, sims[1].L, end_frame if winner == 1 else None, True, tmp_r)
     r = subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error", "-i", tmp_v, "-i", tmp_l, "-i", tmp_r, "-filter_complex",
          "[1:a][2:a]amerge=inputs=2,pan=stereo|c0=0.62*c0+0.18*c1|c1=0.18*c0+0.62*c1[a]",
