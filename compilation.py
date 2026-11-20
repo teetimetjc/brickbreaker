@@ -278,7 +278,8 @@ def captions(ep, cfg):
         board = ", ".join(f"{c.title()} {w}" for c, w in sorted(ep["wins"].items(), key=lambda kv: -kv[1]))
         lines += ["", f"Final standings: {board}", "Which color are you rooting for next week? Comment below!"]
     lines += ["", "New episode every week. Daily Shorts on the channel too.", "",
-              "#satisfying #oddlysatisfying #brickbreaker"]
+              " ".join(cfg["youtube"].get("hashtags_by_style", {}).get("episode", ["#satisfying", "#relaxing",
+                                                                                  "#brickbreaker"]))]
     tags = cfg["youtube"]["tags"] + ["compilation", "color battle", "marble race", "relaxing", "asmr game"]
     comment = "Which color are you backing for next week's episode? 🔴🔵🟡🟢🟣"
     if ep["wins"]:

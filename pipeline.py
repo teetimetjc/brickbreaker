@@ -192,23 +192,24 @@ def pick_hook(meta, vcfg, cfg, rng, avoid):
 def build_captions(meta, vcfg, cfg, rng, avoid=()):
     """One hook per video, chosen to fit how it really ends, used for both the YouTube title and the X post."""
     hook = pick_hook(meta, vcfg, cfg, rng, set(avoid))
-    yt_title = f"{hook} {' '.join(cfg['youtube']['hashtags'][:1])}".strip()[:100]
+    # YouTube: no #shorts (Shorts are detected automatically); one style hashtag in the title, 3 in the description.
+    style_tags = cfg["youtube"].get("hashtags_by_style", {}).get(meta.get("mode") or "normal",
+                                                                   cfg["youtube"]["hashtags"])[:3]
+    yt_title = f"{hook} {style_tags[0]}".strip()[:100] if style_tags else hook[:100]
     b = meta["start_balls"]
     setup = f"{meta['bricks']:,} bricks. {b} starting ball{'s' if b != 1 else ''}"
     setup += f", plus 1 more every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."
     if meta.get("mode") == "escape":
         yt_desc = "\n".join([hook, "", "Four balls race up through walls of bricks. Colored bricks only break for the "
                               "ball of the same color. First one across the checkered line escapes.",
-                              "Comment your color before the end!", "", " ".join(cfg["youtube"]["hashtags"])])
+                              "Comment your color before the end!", "", " ".join(style_tags)])
     elif meta.get("mode") == "battle":
         a, b = (t.title() for t in meta["teams"])
         setup = (f"{a} vs {b}: same {meta['bricks']:,} bricks, same start, same speed. Only the bounces differ. "
                  f"First side to clear wins.")
-        yt_desc = "\n".join([hook, "", setup, "Comment your pick before the end!", "",
-                              " ".join(cfg["youtube"]["hashtags"])])
+        yt_desc = "\n".join([hook, "", setup, "Comment your pick before the end!", "", " ".join(style_tags)])
     else:
-        yt_desc = "\n".join([hook, "", setup, "Missed balls are gone for good.", "",
-                              " ".join(cfg["youtube"]["hashtags"])])
+        yt_desc = "\n".join([hook, "", setup, "Missed balls are gone for good.", "", " ".join(style_tags)])
     # A/B test: only some X posts get hashtags (config x.hashtag_share); logged so views can be compared later.
     use_tags = rng.random() < cfg["x"].get("hashtag_share", 1.0)
     x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}" if use_tags else hook

@@ -64,6 +64,9 @@ them, ~500K–22M views).
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
   only when ≥85% cleared (paddle collapse_at 0.88–0.97). Normal videos reject ~50% of designs at these lengths
   (cheap re-roll before rendering).
+- YouTube hashtags (2026-11-20): no #shorts anywhere (auto-detected); config youtube.hashtags_by_style gives 3 per
+  style (battle #colorbattle #pickaside #satisfying / escape #marblerace ... / normal #brickbreaker ... / episode
+  #satisfying #relaxing #brickbreaker); the first goes at the end of the title, all 3 end the description.
 - `config.json` – videos_per_run, length range (20–45 s), game_over_share (0.3), `max_brick_px` (30: no
   chunky bricks), `recent_hooks_to_avoid` (10), hashtags,
   `x.hashtag_share` (0.5 = A/B test: half of X posts get hashtags, half don't).

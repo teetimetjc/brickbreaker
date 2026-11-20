@@ -21,9 +21,9 @@
       "asmr"
     ],
     "hashtags": [
-      "#shorts",
       "#satisfying",
-      "#oddlysatisfying"
+      "#oddlysatisfying",
+      "#brickbreaker"
     ],
     "playlists": {
       "normal": "Satisfying Clears",
@@ -31,7 +31,29 @@
       "escape": "Brick Escapes",
       "episode": "Weekly Episodes"
     },
-    "comments": true
+    "comments": true,
+    "hashtags_by_style": {
+      "battle": [
+        "#colorbattle",
+        "#pickaside",
+        "#satisfying"
+      ],
+      "escape": [
+        "#marblerace",
+        "#satisfying",
+        "#oddlysatisfying"
+      ],
+      "normal": [
+        "#brickbreaker",
+        "#oddlysatisfying",
+        "#satisfying"
+      ],
+      "episode": [
+        "#satisfying",
+        "#relaxing",
+        "#brickbreaker"
+      ]
+    }
   },
   "x": {
     "hashtags": [
