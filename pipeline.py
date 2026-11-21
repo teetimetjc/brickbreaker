@@ -155,6 +155,30 @@ def vary_normal(vcfg, rng, recent):
         vcfg["obstacle"] = rng.choice([o for o in gen.OBSTACLES if o != vcfg["obstacle"]])
 
 
+def format_name(raw):
+    """Viewer name -> brick text. Letters/digits/space/'-' only; 2 lines for two words or names over 8 letters."""
+    import re
+    import unicodedata
+    n = unicodedata.normalize("NFKD", raw or "").encode("ascii", "ignore").decode()  # Zoë -> Zoe
+    n = re.sub(r"[^A-Za-z0-9 \-]", "", n).strip().upper()[:16]
+    if not n:
+        return ""
+    for sep in (" ", "-"):
+        if sep in n:
+            a, _, b = n.partition(sep)
+            return f"{a}/{b.replace(' ', '').replace('-', '')}"
+    if len(n) > 8:
+        mid = len(n) // 2
+        return f"{n[:mid]}/{n[mid:]}"
+    return n
+
+
+def rng_choice_name(rng, name):
+    return rng.choice([f"Breaking {name}'s name brick by brick 🧱 Who's next? Comment yours 👇",
+                       f"{name}, this one's for you 🧱 Comment your name for the next one 👇",
+                       f"You asked, {name} 🧱 Drop your name below and you might be next 👇"])
+
+
 def recent_hooks(n):
     """Hooks of the last n live posts (data/posts.csv), so titles don't repeat back to back."""
     import csv
@@ -254,6 +278,8 @@ def main():
     ap.add_argument("--text", default="", help="your own caption (default: a random hook)")
     ap.add_argument("--ending", default="any", choices=["any", "win", "lose"], help="force the ending")
     ap.add_argument("--word", default="", help="spell this word in bricks")
+    ap.add_argument("--names", default="", help="comma list of viewer names: one video each, spelled in bricks; "
+                                                "goes to TikTok drafts only unless --platforms says otherwise")
     ap.add_argument("--style", default="auto", choices=["auto", "normal", "battle", "escape"],
                     help="battle = split-screen color race, escape = 4-ball race to the finish; auto mixes them "
                          "using config battle_share / escape_share")
@@ -265,8 +291,12 @@ def main():
 
     cfg = load_config(a.config)
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
-    count = 1 if a.quote else (a.count or cfg["videos_per_run"])
+    raw_names = [n.strip() for n in a.names.split(",") if format_name(n)]
+    names = [format_name(n) for n in raw_names]
+    count = 1 if a.quote else len(names) if names else (a.count or cfg["videos_per_run"])
     publishers = {"x": x} if a.quote else dict(PUBLISHERS)
+    if names and a.platforms.strip() in ("", "all"):
+        a.platforms = "tiktok"  # name requests are replies on TikTok; don't flood YouTube/X with them by default
     if a.platforms.strip() not in ("", "all"):
         want = {p.strip().lower() for p in a.platforms.split(",")}
         publishers = {k: v for k, v in publishers.items() if k in want}
@@ -300,22 +330,26 @@ def main():
                                   cfg["max_len_sec"], cfg["game_over_share"])
             if a.ending != "any":
                 vcfg["lose"], vcfg["outcome"] = True, a.ending
-            if a.word:
-                # no walls (they cut letters) and the smallest bricks (bigger ones make letters unreadable)
-                vcfg.update(pattern="text", text=a.word, obstacle="none", cell=20, balls=None, split_every=0)
+            word = names[i] if names else a.word
+            if word:
+                # no walls (they cut letters) and small bricks (bigger ones make letters unreadable); names always
+                # end CLEARED - the satisfying part is watching the whole name get broken
+                vcfg.update(pattern="text", text=word, obstacle="none", cell=20, balls=None, split_every=0)
+                if names:
+                    vcfg.update(lose=True, outcome="win", cold_open=False)  # show the whole name before breaking it
             last = attempt == 7
             vcfg["reject_over"] = None if last else too_long  # checked before rendering; last try renders anyway
             if attempt == 0:
                 style = a.style
                 if style == "auto":
-                    style = "normal" if a.word else pick_style(master, cfg, recent)
+                    style = "normal" if (a.word or names) else pick_style(master, cfg, recent)
             if style != "normal":
                 vcfg = dict(seed=vcfg["seed"], target=vcfg["target"], reject_over=vcfg["reject_over"])
                 vcfg["card_extras"] = {"season": season, "standings": dict(standings), "subscribe": sub_race}
                 if style == "battle":
                     vary_battle(vcfg, master, recent)
             else:
-                if not a.word:
+                if not (a.word or names):
                     vary_normal(vcfg, master, recent)
                 vcfg["card_extras"] = {"subscribe": sub_normal} if sub_normal else None
             name = (f"{i + 1:02d}_{style}_{vcfg['seed']}.mp4" if style != "normal"
@@ -338,6 +372,13 @@ def main():
                        "obstacle": meta["obstacle"], "palette": meta["palette"]})
         caps = build_captions(meta, vcfg, cfg, master, avoid)
         avoid.append(caps["x"]["hook"])
+        if names:
+            import unicodedata
+            shown = unicodedata.normalize("NFKC", raw_names[i]).strip().title()
+            line = rng_choice_name(master, shown)
+            caps["x"]["hook"], caps["x"]["hashtags"], caps["x"]["text"] = line, False, line
+            caps["tiktok"]["text"] = f"{line} #satisfying #brickbreaker #yourname"
+            caps["youtube"]["title"] = f"{line} #brickbreaker"[:100]
         if a.text:
             caps["x"]["hook"], caps["x"]["hashtags"] = a.text, False
             caps["x"]["text"] = a.text  # your words only; no hashtags (they look spammy on a reply-style quote)

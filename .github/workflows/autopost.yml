@@ -35,6 +35,9 @@ on:
         type: choice
         options: [auto, normal, battle, escape]
         default: auto
+      names:
+        description: "Viewer names, comma separated (one brick video each, sent to TikTok drafts)"
+        default: ""
       window:
         description: "Leave blank. cron-job.org sends 'auto' = post at a random time inside the current window"
         default: ""
@@ -113,9 +116,10 @@ jobs:
           IN_WORD: ${{ inputs.word }}
           IN_PLATFORMS: ${{ inputs.platforms || 'all' }}
           IN_STYLE: ${{ inputs.style || 'auto' }}
+          IN_NAMES: ${{ inputs.names }}
         run: |
           python pipeline.py --count "$IN_COUNT" --quote "$IN_QUOTE" --text "$IN_TEXT" \
-            --ending "$IN_ENDING" --word "$IN_WORD" --platforms "$IN_PLATFORMS" --style "$IN_STYLE"
+            --ending "$IN_ENDING" --word "$IN_WORD" --platforms "$IN_PLATFORMS" --style "$IN_STYLE" --names "$IN_NAMES"
 
       - name: Save post log to the repo
         if: always()

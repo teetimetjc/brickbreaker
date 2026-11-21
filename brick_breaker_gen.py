@@ -110,25 +110,31 @@ def pattern_mask(name, h, w, text="WOW"):
     if name == "stripes":
         return (yy // 3) % 2 == 0
     if name == "text":
+        # Render each line big, crop tight, stack, then fit the block: full width, and letters may stretch up to
+        # 2.2x taller than wide so short or long names fill the space and stay readable in bricks.
+        f = font(400)
+        tiles = []
+        for ln in text.upper().split("/"):
+            t = Image.new("L", (int(f.getlength(ln)) + 200, 600), 0)
+            ImageDraw.Draw(t).text((100, 50), ln, fill=255, font=f)
+            tiles.append(t.crop(t.getbbox()))
+        gap = 90
+        bw = max(t.width for t in tiles)
+        bh = sum(t.height for t in tiles) + gap * (len(tiles) - 1)
+        block = Image.new("L", (bw, bh), 0)
+        y = 0
+        for t in tiles:
+            block.paste(t, ((bw - t.width) // 2, y))
+            y += t.height + gap
         scale = 10
+        W, H = w * scale * 0.96, h * scale * 0.9
+        sx = min(W / bw, H / bh)
+        sy = min(H / bh, sx * 2.2)
+        block = block.resize((max(1, int(bw * sx)), max(1, int(bh * sy))), Image.LANCZOS)
         img = Image.new("L", (w * scale, h * scale), 0)
-        d = ImageDraw.Draw(img)
-        lines = text.upper().split("/")
-        size = h * scale
-        while size > 10:
-            f = font(size)
-            boxes = [d.textbbox((0, 0), ln, font=f) for ln in lines]
-            tw = max(b[2] - b[0] for b in boxes)
-            th = sum(b[3] - b[1] for b in boxes) + (len(lines) - 1) * size * 0.15
-            if tw <= w * scale * 0.96 and th <= h * scale * 0.9:
-                break
-            size = int(size * 0.92)
-        y = (h * scale - th) / 2
-        for ln, b in zip(lines, boxes):
-            d.text(((w * scale - (b[2] - b[0])) / 2 - b[0], y - b[1]), ln, fill=255, font=f)
-            y += (b[3] - b[1]) + size * 0.15
+        img.paste(block, ((w * scale - block.width) // 2, (h * scale - block.height) // 2))
         small = img.resize((w, h), Image.BOX)
-        return np.array(small) > 70
+        return np.array(small) > 90
     raise ValueError(f"unknown pattern {name}")
 
 

@@ -56,6 +56,11 @@ them, ~500K–22M views).
   style twice in a row (weights from battle_share/escape_share, last style excluded); battles never repeat the
   previous matchup (Red vs Blue ~35% when allowed) and skip shapes from the last 3 battles; normal videos skip
   shapes from the last 3 normals and the last obstacle. Added after 4 Red-vs-Blue battles in a row (2026-11-19).
+- NAME REQUESTS (2026-11-21): `--names "Sarah, Mary Ann"` (workflow input `names`) renders one video per viewer name
+  spelled in bricks (format_name: ASCII-folded, 2 lines for two words / hyphen / >8 letters; always ends CLEARED;
+  no cold open so the whole name shows first) and sends them to TikTok DRAFTS only unless platforms is set, for
+  Trevor to attach via TikTok "Reply with video". Captions: "Breaking <Name>'s name brick by brick ...".
+  Text pattern now stretches letters up to 2.2x tall to fill the space (readable names/words everywhere).
 - Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
   (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
   skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.
