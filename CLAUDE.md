@@ -127,7 +127,9 @@ them, ~500K–22M views).
 5. Decide: posting service (Upload-Post / Blotato / Ayrshare, ~$20–30/mo, already audited for
    YouTube/TikTok/Meta) vs direct APIs. If a service, add a publisher for it.
 6. ~~TikTok~~ DONE 2026-11-19 via sandbox drafts (see publishers/tiktok.py); Trevor posts each draft in the app.
-   Full auto would need the production app review (demo video of a posting UI) - only if TikTok takes off.
+   Full auto would need the production app review (demo video of a posting UI). Trevor WANTS this eventually
+   (2026-11-21): plan = build a TikTok-guideline posting page on the website + script for his screen recording,
+   submit Production with video.publish/Direct Post; fallback = paid audited posting service (~$20–30/mo).
    Instagram/Facebook Reels: SKIPPED for now by Trevor (2026-11-19) - don't push it; revisit only if he asks.
    Pending from Trevor: redo OAuth Playground with scopes youtube.upload + youtube.force-ssl (playlists +
    channel comment code is live and skips quietly until then).
