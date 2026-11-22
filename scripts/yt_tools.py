@@ -94,6 +94,19 @@ def comment_for(row, rng):
     return pipeline.channel_comment(meta, rng)
 
 
+def retry(fn, what, tries=4):
+    import time
+    for i in range(tries):
+        try:
+            fn()
+            return True
+        except Exception as e:  # new playlists return 404/409 for a little while
+            if i == tries - 1:
+                print(f"  {what} failed ({str(e)[:120]})")
+                return False
+            time.sleep(15)
+
+
 def backfill():
     import pipeline
     cfg = json.load(open(os.path.join(HERE, "config.json")))
@@ -118,11 +131,12 @@ def backfill():
                     print(f"  playlist '{title}' not readable yet ({str(e)[:80]}), assuming empty")
                 in_list[pid] = have
             if vid not in in_list[pid]:
-                yt.playlistItems().insert(part="snippet", body={"snippet": {
-                    "playlistId": pid, "resourceId": {"kind": "youtube#video", "videoId": vid}}}).execute()
-                in_list[pid].add(vid)
-                added += 1
-                print(f"  {vid}: added to '{title}'")
+                if retry(lambda: yt.playlistItems().insert(part="snippet", body={"snippet": {
+                        "playlistId": pid, "resourceId": {"kind": "youtube#video", "videoId": vid}}}).execute(),
+                        f"{vid}: playlist add"):
+                    in_list[pid].add(vid)
+                    added += 1
+                    print(f"  {vid}: added to '{title}'")
         if cfg["youtube"].get("comments"):
             try:
                 threads = yt.commentThreads().list(part="snippet", videoId=vid, maxResults=100).execute()
@@ -133,10 +147,11 @@ def backfill():
                        for t in threads.get("items", []))
             if not mine:
                 text = comment_for(r, rng)
-                yt.commentThreads().insert(part="snippet", body={"snippet": {
-                    "videoId": vid, "topLevelComment": {"snippet": {"textOriginal": text}}}}).execute()
-                commented += 1
-                print(f"  {vid}: commented '{text}'")
+                if retry(lambda: yt.commentThreads().insert(part="snippet", body={"snippet": {
+                        "videoId": vid, "topLevelComment": {"snippet": {"textOriginal": text}}}}).execute(),
+                        f"{vid}: comment"):
+                    commented += 1
+                    print(f"  {vid}: commented '{text}'")
     summary(f"## Backfill\n- added {added} videos to playlists\n- posted {commented} channel comments")
 
 
