@@ -104,6 +104,10 @@ them, ~500K–22M views).
   `captions.txt` (all captions in one file) for posting by hand. Job timeout 150 min (~40 videos).
 - `README.md` – setup + go-live checklist.
 
+- `prototypes/` (2026-11-22, NOT in the posting rotation yet): musical bricks (brick breaks play Jingle Bells,
+  public domain), glass sound/look edition, sand bricks (breaks crumble into a sand pile), ring escape (ball
+  escapes 7 rotating brick rings). Rough demos sent to Trevor for a pick; integrate the chosen ones properly.
+
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
 - X posting WORKS (first live post 2026-11-18 via the v2 /initialize-/append-/finalize upload; the old
