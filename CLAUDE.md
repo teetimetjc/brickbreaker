@@ -68,6 +68,11 @@ them, ~500K–22M views).
 - Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
   (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
   skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.
+- MID-VIDEO SUBSCRIBE BANNER (2026-11-22, `banner.py`): red YouTube-style pill with play icon, pops in ~40% into
+  every Short (>=5 s in, ends >=1.5 s before the end card) for 2.5 s at 8.5% from the top; ffmpeg overlay after
+  rendering (~6-9 s per video). Text from config mid_banner (race styles battle/escape/drop: "SUBSCRIBE & PICK THE
+  NEXT COLOR"; normal/rings: "SUBSCRIBE FOR A NEW ONE DAILY"). Not on name videos. Why: avg view 16-26 s, so most
+  viewers never see the end card. Next up: viewer color vote (#1) and YouTube name requests (#2).
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
