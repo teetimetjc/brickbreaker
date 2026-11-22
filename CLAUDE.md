@@ -106,7 +106,9 @@ them, ~500K–22M views).
 
 - `prototypes/` (2026-11-22, NOT in the posting rotation yet): musical bricks (brick breaks play Jingle Bells,
   public domain), glass sound/look edition, sand bricks (breaks crumble into a sand pile), ring escape (ball
-  escapes 7 rotating brick rings). Rough demos sent to Trevor for a pick; integrate the chosen ones properly.
+  escapes 7 rotating brick rings), BRICK DROP (`drop.py`: peg-drop board whose pegs are bricks with 6 hit points,
+  80 balls into 4 color bins, seeds probed headlessly for a close finish; never call it "Plinko" - trademark).
+  Trevor LIKES ring escape + brick drop (2026-11-22) -> next: integrate those two into the rotation.
 
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
