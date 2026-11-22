@@ -153,8 +153,12 @@ them, ~500K–22M views).
    (2026-11-21): plan = build a TikTok-guideline posting page on the website + script for his screen recording,
    submit Production with video.publish/Direct Post; fallback = paid audited posting service (~$20–30/mo).
    Instagram/Facebook Reels: SKIPPED for now by Trevor (2026-11-19) - don't push it; revisit only if he asks.
-   Pending from Trevor: redo OAuth Playground with scopes youtube.upload + youtube.force-ssl (playlists +
-   channel comment code is live and skips quietly until then).
+   YouTube token re-made 2026-11-22 with youtube.upload + youtube.force-ssl + yt-analytics.readonly: playlists +
+   channel comments now work on every upload (all 13 earlier uploads backfilled).
+- `scripts/yt_tools.py` + workflow `youtube-tools.yml` (action check|backfill|report): scope check, playlist/comment
+  backfill, and the ANALYTICS REPORT (per-video views/likes now + Analytics API watch time, avg view duration,
+  % watched, subs gained; joined with posts.csv; by style + hashtags A/B + top 5) -> data/analytics/<date>.csv
+  and the run summary. Runs every Monday 14:41 UTC automatically.
 
 ## Constraints / gotchas
 - YouTube: unaudited API projects CAN get uploads locked to PRIVATE (not seen so far) – if it happens, apply for
