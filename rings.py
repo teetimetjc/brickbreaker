@@ -22,6 +22,13 @@ from sfx import SR, Encoder, add, bell, mux, noise_burst, win_chime, write_wav
 W, H, FPS, SUB = 1080, 1920, 30, 6
 CX, CY = W / 2, H * 0.47
 GRAV = 950.0
+
+
+def configure(w, h):
+    """Switch canvas size, e.g. configure(1920, 1080) for the widescreen weekly episode."""
+    global W, H, CX, CY
+    W, H = w, h
+    CX, CY = W / 2, H * (0.47 if H > W else 0.5)
 BALL_R = 15
 
 
@@ -129,13 +136,14 @@ def choose(cfg, verbose=True):
 def end_card(secs, n, extras):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    bw, bh = int(W * 0.8), int(H * 0.17)
+    base = min(W, H * 0.5625)          # card sized like a phone-width card, also in widescreen
+    bw, bh = int(base * 0.8), int(base * 0.3)
     x0, y0 = (W - bw) // 2, (H - bh) // 2
     d.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=40, fill=(10, 10, 14, 235))
-    d.text((W / 2, y0 + bh * 0.14), "ESCAPED!", font=gen.font(int(W * 0.105)), fill=(255, 255, 255), anchor="mt")
-    d.text((W / 2, y0 + bh * 0.66), f"{n} rings in {secs}s", font=gen.font(int(W * 0.05)), fill=(255, 200, 90),
+    d.text((W / 2, y0 + bh * 0.14), "ESCAPED!", font=gen.font(int(base * 0.105)), fill=(255, 255, 255), anchor="mt")
+    d.text((W / 2, y0 + bh * 0.66), f"{n} rings in {secs}s", font=gen.font(int(base * 0.05)), fill=(255, 200, 90),
            anchor="mt")
-    gen.draw_card_extras(d, W, y0 + bh + int(W * 0.04), extras)
+    gen.draw_card_extras(d, W, y0 + bh + int(base * 0.04), extras)
     arr = np.array(img).astype(np.float32)
     return arr[..., :3], arr[..., 3:] / 255.0
 
@@ -146,7 +154,7 @@ def make_ring_escape(cfg, out_path, verbose=True):
     run = Run(seed)
     n = len(run.rings)
     tmp_v, tmp_a = out_path[:-4] + ".v.tmp.mp4", out_path[:-4] + ".a.tmp.wav"
-    enc = Encoder(tmp_v)
+    enc = Encoder(tmp_v, W, H)
     bg = np.zeros((H, W, 3), np.uint8)
     bg[:] = (14, 14, 20)
     trail, card, after = [], None, 0

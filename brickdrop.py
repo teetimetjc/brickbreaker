@@ -27,6 +27,17 @@ TEAMS = [("RED", (235, 70, 70)), ("YELLOW", (245, 200, 40)), ("BLUE", (60, 130, 
 BW = (X1 - X0) / NB
 
 
+def configure(w, h):
+    """Switch canvas size, e.g. configure(1920, 1080) for the widescreen weekly episode."""
+    global W, H, X0, X1, TOP, PEG_TOP, BIN_TOP, FLOOR, BW
+    W, H = w, h
+    if h > w:
+        X0, X1, TOP, PEG_TOP, BIN_TOP, FLOOR = 150, 930, 250, 380, 1390, 1700
+    else:  # wide board, fewer rows
+        X0, X1, TOP, PEG_TOP, BIN_TOP, FLOOR = 380, 1540, 70, 150, 760, 960
+    BW = (X1 - X0) / NB
+
+
 class Run:
     def __init__(self, seed, balls, every, hp):
         self.rng = random.Random(seed)
@@ -44,7 +55,8 @@ class Run:
         self.bins = [0] * NB
         self.balls, self.shards, self.events = [], [], []
         self.dropped, self.frame, self.end, self.leader, self.changes = 0, 0, None, None, 0
-        self.scale = max(2.0, min(6.0, 260 / max(1, balls / NB * 1.25)))   # px of bin fill per ball
+        room = FLOOR - BIN_TOP - 50
+        self.scale = max(1.5, min(6.0, room / max(1, balls / NB * 1.25)))   # px of bin fill per ball
 
     def step(self):
         rng = self.rng
@@ -148,19 +160,20 @@ def choose(cfg, verbose=True):
 def end_card(name, col, bins, extras):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    bw, bh = int(W * 0.8), int(H * 0.17)
-    x0, y0 = (W - bw) // 2, int(H * 0.36)
+    base = min(W, H * 0.5625)          # card sized like a phone-width card, also in widescreen
+    bw, bh = int(base * 0.8), int(base * 0.3)
+    x0, y0 = (W - bw) // 2, int(H * (0.36 if H > W else 0.3))
     d.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=40, fill=(10, 10, 14, 235))
     head = f"{name} WINS!"
-    size = int(W * 0.095)
+    size = int(base * 0.095)
     while gen.font(size).getlength(head) > bw * 0.9:
         size -= 2
     d.text((W / 2, y0 + bh * 0.14), head, font=gen.font(size), fill=col, anchor="mt", stroke_width=3,
            stroke_fill=(20, 20, 26))
     top = sorted(bins)
-    d.text((W / 2, y0 + bh * 0.66), f"{top[-1]} balls to {top[-2]}", font=gen.font(int(W * 0.05)),
+    d.text((W / 2, y0 + bh * 0.66), f"{top[-1]} balls to {top[-2]}", font=gen.font(int(base * 0.05)),
            fill=(225, 225, 235), anchor="mt")
-    gen.draw_card_extras(d, W, y0 + bh + int(W * 0.04), extras, winner=name)
+    gen.draw_card_extras(d, W, y0 + bh + int(base * 0.04), extras, winner=name)
     arr = np.array(img).astype(np.float32)
     return arr[..., :3], arr[..., 3:] / 255.0
 
@@ -170,7 +183,7 @@ def make_brick_drop(cfg, out_path, verbose=True):
     seed, balls, every, hp = choose(cfg, verbose)
     run = Run(seed, balls, every, hp)
     tmp_v, tmp_a = out_path[:-4] + ".v.tmp.mp4", out_path[:-4] + ".a.tmp.wav"
-    enc = Encoder(tmp_v)
+    enc = Encoder(tmp_v, W, H)
     bg = np.zeros((H, W, 3), np.uint8)
     bg[:] = (14, 14, 20)
     f_mid, f_small = gen.font(52), gen.font(40)

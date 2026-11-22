@@ -28,6 +28,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import battle  # noqa: E402
+import brickdrop  # noqa: E402
+import rings  # noqa: E402
 import brick_breaker_gen as gen  # noqa: E402
 import escape  # noqa: E402
 import pipeline  # noqa: E402
@@ -136,6 +138,10 @@ def render_round(kind, rng, path, target):
                 return battle.make_battle(cfg, path)
             if kind == "escape":
                 return escape.make_escape(dict(seed=seed, target=target, reject_over=reject), path)
+            if kind == "rings":
+                return rings.make_ring_escape(dict(seed=seed, target=target, reject_over=reject), path)
+            if kind == "drop":
+                return brickdrop.make_brick_drop(dict(seed=seed, target=target, reject_over=reject), path)
             cfg = gen.random_cfg(rng, gen.default_cfg(size=gen.SIZES["landscape"], max_cell=30), target, target, 0.3)
             cfg["target"], cfg["reject_over"] = target, reject
             return gen.make_video(cfg, path)
@@ -154,6 +160,10 @@ def round_label(meta):
         return f"{a.title()} vs {b.title()}"
     if meta.get("mode") == "escape":
         return "Brick Escape"
+    if meta.get("mode") == "rings":
+        return f"Ring Escape ({meta.get('rings', 7)} rings)"
+    if meta.get("mode") == "drop":
+        return f"Brick Drop ({meta['start_balls']} balls)"
     shape = SHAPES.get(meta["pattern"], meta["pattern"].title())
     obst = {"none": "", "vault": " in a Vault", "pillars": " with Pillars", "shelves": " on Shelves",
             "funnel": " through a Funnel", "maze": " in a Maze"}.get(meta["obstacle"], "")
@@ -165,12 +175,16 @@ def round_sub_before(kind, rng):
         return rng.choice(["Pick a side!", "Who clears first?", "Same bricks. Same start."])
     if kind == "escape":
         return rng.choice(["4 balls. 1 exit.", "Pick your ball!", "Who escapes first?"])
+    if kind == "rings":
+        return rng.choice(["Guess the time!", "Can it break out?", "Every gap is a way out..."])
+    if kind == "drop":
+        return rng.choice(["Pick your color!", "Which bin fills first?", "Bricks break. Paths change."])
     return rng.choice(["Will it clear?", "Can it make it?", "Wait for the last brick..."])
 
 
 def plan(rng, n):
     kinds = []
-    pool = ["battle", "escape", "normal"]
+    pool = ["battle", "escape", "normal", "rings", "drop"]
     while len(kinds) < n:
         rng.shuffle(pool)
         for k in pool:
@@ -213,6 +227,8 @@ def next_episode():
 def make_episode(out_path, episode, seed, max_total=MAX_TOTAL_S):
     battle.configure(W, H)
     escape.configure(W, H)
+    rings.configure(W, H)
+    brickdrop.configure(W, H)
     rng = random.Random(seed)
     work = out_path[:-4] + "_parts"
     os.makedirs(work, exist_ok=True)

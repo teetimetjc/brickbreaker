@@ -34,7 +34,7 @@ them, ~500K–22M views).
   for the engagement A/B). Own physics + Painter (not gen.Sim). `python3 escape.py --theme light --out e.mp4`.
 - `compilation.py` – WEEKLY LONG-FORM YouTube episode, widescreen 1920x1080, kept under 14:40 (YouTube needs a
   phone-verified channel for >15 min). Fresh rounds (normal/battle/escape, via battle.configure /
-  escape.configure(1920,1080)) with "ROUND N" cards + running color leaderboard, outro with final standings,
+  escape.configure(1920,1080), plus rings/drop since 2026-11-22) with "ROUND N" cards + running color leaderboard, outro with final standings,
   chapters in the description, logged to posts.csv as pattern=compilation (episode number = count + 1).
   Workflow `.github/workflows/compilation.yml`: main timer = 2nd cron-job.org job on Sunday mornings (window=auto ->
   `--once-per-week` skips if an episode was posted in the last 6 days); GitHub cron Sun 15:23 UTC is backup. YouTube only.
@@ -114,7 +114,8 @@ them, ~500K–22M views).
 - `brickdrop.py` – BRICK DROP style (`drop`): 40–160 balls into 4 color bins through peg-bricks (hp scales with ball
   count), seed probed for a 1-ball-margin finish with lead changes; winner counts toward season standings.
   Shared helpers in `sfx.py`. Mix (config): battle .2, escape .2, rings .15, drop .15, normal rest. Pipeline falls
-  back to a normal video if a style can't fit after 5 re-rolls. Weekly episode does NOT include rings/drop yet.
+  back to a normal video if a style can't fit after 5 re-rolls. Weekly episode now includes rings + drop rounds
+  too (rings.configure / brickdrop.configure(1920,1080); end cards sized from a phone-width base).
 
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
