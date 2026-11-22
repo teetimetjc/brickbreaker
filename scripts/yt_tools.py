@@ -109,10 +109,13 @@ def backfill():
             pid = youtube._playlist_id(yt, title)
             if pid not in in_list:
                 have, req = set(), yt.playlistItems().list(part="contentDetails", playlistId=pid, maxResults=50)
-                while req is not None:
-                    resp = req.execute()
-                    have |= {it["contentDetails"]["videoId"] for it in resp.get("items", [])}
-                    req = yt.playlistItems().list_next(req, resp)
+                try:
+                    while req is not None:
+                        resp = req.execute()
+                        have |= {it["contentDetails"]["videoId"] for it in resp.get("items", [])}
+                        req = yt.playlistItems().list_next(req, resp)
+                except Exception as e:  # a just-created playlist can 404 for a minute: treat it as empty
+                    print(f"  playlist '{title}' not readable yet ({str(e)[:80]}), assuming empty")
                 in_list[pid] = have
             if vid not in in_list[pid]:
                 yt.playlistItems().insert(part="snippet", body={"snippet": {
