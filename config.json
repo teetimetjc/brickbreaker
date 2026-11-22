@@ -3,8 +3,8 @@
   "min_len_sec": 20,
   "max_len_sec": 45,
   "game_over_share": 0.3,
-  "battle_share": 0.3,
-  "escape_share": 0.25,
+  "battle_share": 0.2,
+  "escape_share": 0.2,
   "max_brick_px": 30,
   "recent_hooks_to_avoid": 10,
   "subscribe_text": "SUBSCRIBE FOR MORE",
@@ -29,7 +29,9 @@
       "normal": "Satisfying Clears",
       "battle": "Color Battles",
       "escape": "Brick Escapes",
-      "episode": "Weekly Episodes"
+      "episode": "Weekly Episodes",
+      "rings": "Ring Escapes",
+      "drop": "Brick Drops"
     },
     "comments": true,
     "hashtags_by_style": {
@@ -52,6 +54,16 @@
         "#satisfying",
         "#relaxing",
         "#brickbreaker"
+      ],
+      "rings": [
+        "#satisfying",
+        "#oddlysatisfying",
+        "#asmr"
+      ],
+      "drop": [
+        "#marblerace",
+        "#pickaside",
+        "#satisfying"
       ]
     }
   },
@@ -84,5 +96,7 @@
       "#brickbreaker",
       "#fyp"
     ]
-  }
+  },
+  "rings_share": 0.15,
+  "drop_share": 0.15
 }

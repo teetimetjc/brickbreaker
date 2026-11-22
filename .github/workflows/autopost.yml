@@ -31,9 +31,9 @@ on:
         description: "Spell a word in bricks, e.g. MONDAY (blank = random shape)"
         default: ""
       style:
-        description: "Video style (auto = mix of normal, color battles and brick escapes)"
+        description: "Video style (auto = mix of all styles)"
         type: choice
-        options: [auto, normal, battle, escape]
+        options: [auto, normal, battle, escape, rings, drop]
         default: auto
       names:
         description: "Viewer names, comma separated (one brick video each, sent to TikTok drafts)"

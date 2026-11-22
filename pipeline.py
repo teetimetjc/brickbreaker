@@ -28,7 +28,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import battle  # noqa: E402
+import brickdrop  # noqa: E402
 import escape  # noqa: E402
+import rings  # noqa: E402
 import brick_breaker_gen as gen  # noqa: E402
 from publishers import tiktok, youtube, x  # noqa: E402
 
@@ -65,6 +67,10 @@ HOOKS = {
                "{a} vs {b}. No switching sides", "Same bricks, same start. Who wins?", "Pick a side: {a} or {b}",
                "{a} vs {b}. This one goes down to the wire"],
     # brick escape: 4 balls race to the finish line
+    "rings": ["Can it escape all {n} rings? ⭕", "{n} rings. 1 ball. Guess the time ⏱️", "Every gap is a way out...",
+              "How fast can it break out? ⭕", "Wait for the last ring 👀", "Guess how many seconds ⏱️"],
+    "drop": ["Pick your color 🔴🟡🔵🟢", "Which bin fills first? 🔴🟡🔵🟢", "{balls} balls. 4 colors. Pick one 👇",
+             "The bricks keep breaking... pick a color 🔴🟡🔵🟢", "Comment your color before it ends 👇"],
     "escape": ["Pick your ball 🔴🟡🔵🟢", "Which one escapes first? 🔴🟡🔵🟢", "Pick a color before it starts 🔴🟡🔵🟢",
                "4 balls. 1 exit. Pick yours 🔴🟡🔵🟢", "Who breaks out first? 🔴🟡🔵🟢",
                "Comment your color 🔴🟡🔵🟢 No switching!"],
@@ -100,6 +106,10 @@ def style_of(row):
     pal = row.get("palette") or ""
     if row.get("pattern") == "compilation":
         return "episode"
+    if pal.startswith("rings-"):
+        return "rings"
+    if pal.startswith("drop"):
+        return "drop"
     return "battle" if "-vs-" in pal else "escape" if pal.startswith("escape") else "normal"
 
 
@@ -118,7 +128,7 @@ def recent_posts(n=12):
 
 def pick_style(rng, cfg, recent):
     """Weighted by config shares, but never the same style as the previous post."""
-    weights = {"battle": cfg.get("battle_share", 0), "escape": cfg.get("escape_share", 0)}
+    weights = {k: cfg.get(f"{k}_share", 0) for k in ("battle", "escape", "rings", "drop")}
     weights["normal"] = max(0.0, 1 - sum(weights.values()))
     if recent:
         weights[recent[-1]["style"]] = 0
@@ -190,6 +200,10 @@ def recent_hooks(n):
 
 
 def pick_hook(meta, vcfg, cfg, rng, avoid):
+    if meta.get("mode") in ("rings", "drop"):
+        opts = [h.format(n=meta.get("rings", 7), balls=meta.get("start_balls", 80)) for h in HOOKS[meta["mode"]]]
+        fresh = [h for h in opts if h not in avoid] or opts
+        return rng.choice(fresh)
     if meta.get("mode") == "escape":
         fresh = [h for h in HOOKS["escape"] if h not in avoid] or HOOKS["escape"]
         return rng.choice(fresh)
@@ -223,7 +237,15 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     b = meta["start_balls"]
     setup = f"{meta['bricks']:,} bricks. {b} starting ball{'s' if b != 1 else ''}"
     setup += f", plus 1 more every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."
-    if meta.get("mode") == "escape":
+    if meta.get("mode") == "rings":
+        yt_desc = "\n".join([hook, "", f"One ball, {meta.get('rings', 7)} spinning rings of bricks. Every time it slips "
+                              "through a gap, that ring shatters. Escape them all.", "Guess the time in the comments!",
+                              "", " ".join(style_tags)])
+    elif meta.get("mode") == "drop":
+        yt_desc = "\n".join([hook, "", f"{meta['start_balls']} balls drop through a board of bricks that crack and "
+                              "break. Most balls in your color's bin wins.", "Comment your color before the end!",
+                              "", " ".join(style_tags)])
+    elif meta.get("mode") == "escape":
         yt_desc = "\n".join([hook, "", "Four balls race up through walls of bricks. Colored bricks only break for the "
                               "ball of the same color. First one across the checkered line escapes.",
                               "Comment your color before the end!", "", " ".join(style_tags)])
@@ -249,6 +271,11 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
 
 def channel_comment(meta, rng):
     """The channel's own first comment: a question that invites replies (replies push videos to more viewers)."""
+    if meta.get("mode") == "rings":
+        return rng.choice(["What time did you guess? ⏱️", "Which ring had you nervous? ⭕", "More rings next time? 👇"])
+    if meta.get("mode") == "drop":
+        return rng.choice(["Which color did you pick? 🔴🟡🔵🟢", "Did your bin win? Comment your color 👇",
+                           "Close one! Who called it? 👀"])
     if meta.get("mode") == "battle":
         a, b = (t.title() for t in meta["teams"])
         return rng.choice([f"Which side did you pick, {a} or {b}? Be honest if you switched 👀",
@@ -280,7 +307,7 @@ def main():
     ap.add_argument("--word", default="", help="spell this word in bricks")
     ap.add_argument("--names", default="", help="comma list of viewer names: one video each, spelled in bricks; "
                                                 "goes to TikTok drafts only unless --platforms says otherwise")
-    ap.add_argument("--style", default="auto", choices=["auto", "normal", "battle", "escape"],
+    ap.add_argument("--style", default="auto", choices=["auto", "normal", "battle", "escape", "rings", "drop"],
                     help="battle = split-screen color race, escape = 4-ball race to the finish; auto mixes them "
                          "using config battle_share / escape_share")
     ap.add_argument("--platforms", default="all", help="comma list to post to, e.g. youtube or x,youtube (default all)")
@@ -346,6 +373,8 @@ def main():
             if style != "normal":
                 vcfg = dict(seed=vcfg["seed"], target=vcfg["target"], reject_over=vcfg["reject_over"])
                 vcfg["card_extras"] = {"season": season, "standings": dict(standings), "subscribe": sub_race}
+                if style == "rings":  # single ball, no colors -> no standings, just the subscribe line
+                    vcfg["card_extras"] = {"subscribe": sub_normal} if sub_normal else None
                 if style == "battle":
                     vary_battle(vcfg, master, recent)
             else:
@@ -358,9 +387,14 @@ def main():
             print(f"[{i + 1}/{count}] rendering {name}")
             try:
                 meta = (battle.make_battle(vcfg, path) if style == "battle" else
-                        escape.make_escape(vcfg, path) if style == "escape" else gen.make_video(vcfg, path))
+                        escape.make_escape(vcfg, path) if style == "escape" else
+                        rings.make_ring_escape(vcfg, path) if style == "rings" else
+                        brickdrop.make_brick_drop(vcfg, path) if style == "drop" else gen.make_video(vcfg, path))
             except gen.TooLong as e:
                 print(f"  skipped before rendering: {e}; re-rolling")
+                if attempt >= 4 and style not in ("normal",) and not (a.word or names):
+                    style = "normal"  # this style can't fit right now; fall back so the slot still gets a post
+                    print("  falling back to a normal video")
                 continue
             if meta["duration"] <= too_long or last:
                 break
@@ -444,6 +478,10 @@ def append_post_log(results, quote):
 
 
 def ending_text(v):
+    if v.get("mode") == "rings":
+        return f"escaped in {v['clear_time']}s"
+    if v.get("mode") == "drop":
+        return f"{v['outcome']} by {v['margin']} ball{'s' if v['margin'] != 1 else ''}"
     if v.get("mode") in ("battle", "escape"):
         return f"{v['outcome']} by {v['margin_s']}s"
     return "cleared" if v["outcome"] == "win" else f"game over at {v['cleared_pct']}%"

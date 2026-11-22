@@ -108,7 +108,13 @@ them, ~500K–22M views).
   public domain), glass sound/look edition, sand bricks (breaks crumble into a sand pile), ring escape (ball
   escapes 7 rotating brick rings), BRICK DROP (`drop.py`: peg-drop board whose pegs are bricks with 6 hit points,
   80 balls into 4 color bins, seeds probed headlessly for a close finish; never call it "Plinko" - trademark).
-  Trevor LIKES ring escape + brick drop (2026-11-22) -> next: integrate those two into the rotation.
+  Trevor LIKES ring escape + brick drop (2026-11-22) -> now integrated as rings.py / brickdrop.py (below).
+- `rings.py` – RING ESCAPE style (`rings`): 7–9 spinning brick rings with gaps, ball with gravity; seed probed so the
+  escape lands at 12–30 s (own range, ignores longer targets). End card ESCAPED! + subscribe pill (no standings).
+- `brickdrop.py` – BRICK DROP style (`drop`): 40–160 balls into 4 color bins through peg-bricks (hp scales with ball
+  count), seed probed for a 1-ball-margin finish with lead changes; winner counts toward season standings.
+  Shared helpers in `sfx.py`. Mix (config): battle .2, escape .2, rings .15, drop .15, normal rest. Pipeline falls
+  back to a normal video if a style can't fit after 5 re-rolls. Weekly episode does NOT include rings/drop yet.
 
 ## Status
 - Generator + pipeline dry run tested end to end (~15–25 s render per video).
