@@ -400,6 +400,17 @@ def main():
                 break
             print(f"  {meta['duration']:.0f}s is too long (> {too_long:.0f}s); re-rolling")
             os.remove(path)
+        mb = cfg.get("mid_banner", {})
+        if mb.get("enabled") and not names:
+            # mid-video SUBSCRIBE pill: most viewers swipe away before the end card, so ask ~40% in as well
+            import banner
+            race = (meta.get("mode") or "normal") in ("battle", "escape", "drop")
+            try:
+                at = banner.apply_in_place(path, mb["race"] if race else mb["normal"])
+                meta["banner_at"] = round(at, 1) if at is not None else None
+                print(f"  subscribe banner at {at:.1f}s" if at is not None else "  (too short for a banner)")
+            except Exception as e:  # never lose the post over the banner
+                print(f"  banner skipped: {e}")
         if meta.get("winner"):
             standings[meta["winner"]] = standings.get(meta["winner"], 0) + 1
         recent.append({"style": meta.get("mode") or "normal", "pattern": meta["pattern"],
