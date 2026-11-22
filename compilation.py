@@ -353,7 +353,7 @@ def main():
     if live:
         if not youtube.configured():
             sys.exit("live upload needs YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN")
-        url = youtube.post(ep["file"], caps, cfg.get("youtube", {}))
+        url = youtube.post(ep["file"], caps, cfg.get("youtube", {})).replace("/shorts/", "/watch?v=")  # long video
         status = f"[posted]({url})"
         print(f"  posted to youtube: {url}")
         log_post(url, ep)

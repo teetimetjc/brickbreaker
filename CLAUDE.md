@@ -39,7 +39,8 @@ them, ~500K–22M views).
   Workflow `.github/workflows/compilation.yml`: main timer = 2nd cron-job.org job on Sunday mornings (window=auto ->
   `--once-per-week` skips if an episode was posted in the last 6 days); GitHub cron Sun 15:23 UTC is backup. YouTube only.
   First full dry run on GitHub (2026-11-18): 13:38 long, 14 rounds, rendered in ~6.5 min, ~60 MB artifact.
-  First LIVE episode: Sunday 2026-11-22 unless Trevor pauses it.
+  Episode 1 LIVE 2026-11-22 (https://youtube.com/watch?v=o5oJnkXf3Zw, 14:10, 19 rounds) - started manually by Claude
+  because the cron-job.org weekly job never fired (daily job did); Trevor to check that job is saved/enabled.
 - `pipeline.py` – `--style auto|normal|battle|escape` (auto mixes: config `battle_share` 0.3, `escape_share`
   0.25, rest normal);
   `--platforms all|x|youtube` limits where to post. Renders N random videos, writes captions (tease the ending, don't spoil it), saves per-video
