@@ -1,0 +1,46 @@
+name: YouTube tools
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "check = token scopes, backfill = playlists + comments on old uploads, report = analytics"
+        type: choice
+        options: [check, backfill, report]
+        default: check
+      days:
+        description: "Report window in days (0 = since the first post)"
+        default: "0"
+  schedule:
+    - cron: "41 14 * * 1"   # weekly analytics report, Monday ~8:41 am Chicago
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          IN_ACTION: ${{ inputs.action || 'report' }}
+          IN_DAYS: ${{ inputs.days || '0' }}
+        run: python scripts/yt_tools.py "$IN_ACTION" --days "$IN_DAYS"
+      - name: Commit report
+        if: ${{ (inputs.action || 'report') == 'report' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/analytics
+          git diff --cached --quiet && exit 0
+          git commit -m "YouTube analytics report"
+          for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done

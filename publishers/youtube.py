@@ -11,7 +11,8 @@ import os
 
 # upload = post videos; force-ssl = comment as the channel and add videos to playlists. A refresh token made with
 # only the upload scope still uploads fine; the extras are then skipped with a warning.
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.force-ssl"]
+SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.force-ssl",
+          "https://www.googleapis.com/auth/yt-analytics.readonly"]
 KEYS = ("YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN")
 
 
