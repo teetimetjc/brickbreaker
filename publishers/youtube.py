@@ -98,3 +98,15 @@ def extras(yt, vid, caption):
             print("  posted channel comment")
         except Exception as e:
             print(f"  note: comment skipped ({str(e)[:160]})")
+
+
+def set_thumbnail(video_id, image_path):
+    """Custom thumbnail (needs a phone-verified channel). Works with the youtube.upload scope."""
+    from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
+    from googleapiclient.http import MediaFileUpload
+    creds = Credentials(None, refresh_token=os.environ["YT_REFRESH_TOKEN"].strip(),
+                        token_uri="https://oauth2.googleapis.com/token",
+                        client_id=os.environ["YT_CLIENT_ID"].strip(), client_secret=os.environ["YT_CLIENT_SECRET"].strip())
+    yt = build("youtube", "v3", credentials=creds, cache_discovery=False)
+    yt.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(image_path, mimetype="image/jpeg")).execute()

@@ -354,6 +354,13 @@ def main():
         if not youtube.configured():
             sys.exit("live upload needs YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN")
         url = youtube.post(ep["file"], caps, cfg.get("youtube", {})).replace("/shorts/", "/watch?v=")  # long video
+        try:  # custom thumbnail (phone-verified channel); never fails the upload
+            import thumbnail
+            thumb = thumbnail.make_thumbnail(os.path.join(run_dir, "thumbnail.jpg"), n, rounds=len(ep["rounds"]))
+            youtube.set_thumbnail(url.rsplit("=", 1)[-1], thumb)
+            print("  set custom thumbnail")
+        except Exception as e:
+            print(f"  note: thumbnail skipped ({str(e)[:160]})")
         status = f"[posted]({url})"
         print(f"  posted to youtube: {url}")
         log_post(url, ep)

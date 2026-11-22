@@ -39,6 +39,9 @@ them, ~500K–22M views).
   Workflow `.github/workflows/compilation.yml`: main timer = 2nd cron-job.org job on Sunday mornings (window=auto ->
   `--once-per-week` skips if an episode was posted in the last 6 days); GitHub cron Sun 15:23 UTC is backup. YouTube only.
   First full dry run on GitHub (2026-11-18): 13:38 long, 14 rounds, rendered in ~6.5 min, ~60 MB artifact.
+  THUMBNAILS (channel phone-verified 2026-11-22): `thumbnail.py` makes a 1280x720 JPEG (widescreen battle frame
+  mid-race + "WHO WINS?"-style headline + matchup in team colors + EPISODE badge); compilation sets it after upload
+  (youtube.set_thumbnail, works with the upload scope). Existing video: workflow input thumb_for=VIDEO_ID,EPISODE.
   Episode 1 LIVE 2026-11-22 (https://youtube.com/watch?v=o5oJnkXf3Zw, 14:10, 19 rounds) - started manually by Claude
   because the cron-job.org weekly job never fired (daily job did); Trevor to check that job is saved/enabled.
 - `pipeline.py` – `--style auto|normal|battle|escape` (auto mixes: config `battle_share` 0.3, `escape_share`

@@ -16,6 +16,9 @@ on:
       window:
         description: "Leave blank. cron-job.org sends 'auto' = skip if this week's episode is already up"
         default: ""
+      thumb_for:
+        description: "Optional: only set a fresh thumbnail on an existing episode. Format: VIDEO_ID,EPISODE_NUMBER"
+        default: ""
 
 concurrency:
   group: autopost  # shares the lock with the daily posts so data/posts.csv commits never collide
@@ -57,9 +60,14 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           IN_MINUTES: ${{ inputs.minutes }}
+          IN_THUMB: ${{ inputs.thumb_for }}
           ONCE: ${{ (github.event_name == 'schedule' || inputs.window != '') && '--once-per-week' || '' }}
         run: |
           git pull -q --ff-only origin main   # newest data/posts.csv for the once-a-week check
+          if [ -n "$IN_THUMB" ]; then
+            mkdir -p output && python thumbnail.py --set "${IN_THUMB%%,*}" --episode "${IN_THUMB##*,}" --out output/thumbnail.jpg
+            exit 0
+          fi
           if [ -n "$IN_MINUTES" ]; then python compilation.py $ONCE --minutes "$IN_MINUTES"; else python compilation.py $ONCE; fi
 
       - name: Save post log to the repo
