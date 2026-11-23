@@ -1,15 +1,16 @@
-time_utc,x_url,youtube_url,quote_of,hook,hashtags,pattern,obstacle,palette,duration_s,outcome,cleared_pct,bricks,start_balls,bonus_every,peak_balls,file
-2026-11-18 02:39,,https://youtube.com/shorts/G_7x64vkPUs,,Will it make it?,yes,rings,vault,mint,75,lose,97,577,6,0,6,01_rings_vault_641508.mp4
-2026-11-18 04:17,https://x.com/i/status/2122906969308889456,https://youtube.com/shorts/ekmgH2Elnsk,,Red vs Blue. This one goes down to the wire,yes,circle,none,red-vs-blue,38,red wins,100,325,1,15,22,01_battle_222242.mp4
-2026-11-18 07:08,https://x.com/i/status/2122950048761913433,https://youtube.com/shorts/e2SmYlbksTM,,"Same bricks, same start. Who wins?",yes,diamond,none,red-vs-blue,34,blue wins,100,221,1,10,23,01_battle_545324.mp4
-2026-11-18 21:49,https://x.com/i/status/2123171709859582390,https://youtube.com/shorts/AP9Zmq_S9wQ,,Pick a side: Red or Blue,no,pyramid,pillars,red-vs-blue,73,red wins,100,499,5,0,5,01_battle_866479.mp4
-2026-11-19 01:31,https://x.com/i/status/2123227720821682678,https://youtube.com/shorts/IvHz-LqHfC0,,Which color clears first?,no,pyramid,shelves,red-vs-blue,55,red wins,100,468,1,10,40,01_battle_326881.mp4
-2026-11-19 15:07,https://x.com/i/status/2123432857473339708,https://youtube.com/shorts/wYOZ-ajU05g,,945 bricks vs 1 ball,no,checker,funnel,red,42,win,100,945,1,40,16,01_checker_funnel_593342.mp4
-2026-11-20 02:32,https://x.com/i/status/2123605177429065891,https://youtube.com/shorts/AkQHetcB0is,,Yellow vs Purple. Comment your pick,yes,rings,pillars,yellow-vs-purple,46,yellow wins,100,193,1,10,20,01_battle_872324.mp4
-2026-11-20 16:36,https://x.com/i/status/2123817795766878423,https://youtube.com/shorts/Dtn_hggl6Sw,,Pick your ball 🔴🟡🔵🟢,no,escape-5,course,escape-dark,32,blue escapes,0,132,4,0,4,01_escape_411203.mp4
-2026-11-21 01:04,https://x.com/i/status/2123945657069359532,https://youtube.com/shorts/k0raSjwJ2B0,,Red vs Blue. Comment your pick,yes,stripes,none,red-vs-blue,25,red wins,100,525,1,15,36,01_battle_86729.mp4
-2026-11-21 16:06,https://x.com/i/status/2124172539014344740,https://youtube.com/shorts/aFKw31iOr4o,,1 ball vs 394 bricks,yes,circle,none,grape,28,win,100,394,1,15,18,01_circle_none_333861.mp4
-2026-11-22 00:39,https://x.com/i/status/2124301646343929999,https://youtube.com/shorts/fNNND8Pjtk4,,Green vs Purple. Comment your pick,no,diamond,none,green-vs-purple,35,green wins,100,221,1,10,23,01_battle_643952.mp4
-2026-11-22 15:16,,https://youtube.com/watch?v=o5oJnkXf3Zw,,Episode 1,no,compilation,19 rounds,mixed,851,champion -,,,,,,episode_001.mp4
-2026-11-22 16:31,https://x.com/i/status/2124541311650861442,https://youtube.com/shorts/_DBLRCCxIE4,,Who breaks out first? 🔴🟡🔵🟢,no,escape-8,course,escape-light,44,blue escapes,0,382,4,0,4,01_escape_978401.mp4
-2026-11-23 00:35,https://x.com/i/status/2124662998253948982,https://youtube.com/shorts/68F4d3uc5KQ,,How fast can it break out? ⭕,no,rings-7,none,rings-7,32,escaped,100,412,1,0,1,01_rings_778969.mp4
+time_utc,x_url,youtube_url,quote_of,hook,hashtags,pattern,obstacle,palette,duration_s,outcome,cleared_pct,bricks,start_balls,bonus_every,peak_balls,file,vote
+2026-11-18 02:39,,https://youtube.com/shorts/G_7x64vkPUs,,Will it make it?,yes,rings,vault,mint,75,lose,97,577,6,0,6,01_rings_vault_641508.mp4,
+2026-11-18 04:17,https://x.com/i/status/2122906969308889456,https://youtube.com/shorts/ekmgH2Elnsk,,Red vs Blue. This one goes down to the wire,yes,circle,none,red-vs-blue,38,red wins,100,325,1,15,22,01_battle_222242.mp4,
+2026-11-18 07:08,https://x.com/i/status/2122950048761913433,https://youtube.com/shorts/e2SmYlbksTM,,"Same bricks, same start. Who wins?",yes,diamond,none,red-vs-blue,34,blue wins,100,221,1,10,23,01_battle_545324.mp4,
+2026-11-18 21:49,https://x.com/i/status/2123171709859582390,https://youtube.com/shorts/AP9Zmq_S9wQ,,Pick a side: Red or Blue,no,pyramid,pillars,red-vs-blue,73,red wins,100,499,5,0,5,01_battle_866479.mp4,
+2026-11-19 01:31,https://x.com/i/status/2123227720821682678,https://youtube.com/shorts/IvHz-LqHfC0,,Which color clears first?,no,pyramid,shelves,red-vs-blue,55,red wins,100,468,1,10,40,01_battle_326881.mp4,
+2026-11-19 15:07,https://x.com/i/status/2123432857473339708,https://youtube.com/shorts/wYOZ-ajU05g,,945 bricks vs 1 ball,no,checker,funnel,red,42,win,100,945,1,40,16,01_checker_funnel_593342.mp4,
+2026-11-20 02:32,https://x.com/i/status/2123605177429065891,https://youtube.com/shorts/AkQHetcB0is,,Yellow vs Purple. Comment your pick,yes,rings,pillars,yellow-vs-purple,46,yellow wins,100,193,1,10,20,01_battle_872324.mp4,
+2026-11-20 16:36,https://x.com/i/status/2123817795766878423,https://youtube.com/shorts/Dtn_hggl6Sw,,Pick your ball 🔴🟡🔵🟢,no,escape-5,course,escape-dark,32,blue escapes,0,132,4,0,4,01_escape_411203.mp4,
+2026-11-21 01:04,https://x.com/i/status/2123945657069359532,https://youtube.com/shorts/k0raSjwJ2B0,,Red vs Blue. Comment your pick,yes,stripes,none,red-vs-blue,25,red wins,100,525,1,15,36,01_battle_86729.mp4,
+2026-11-21 16:06,https://x.com/i/status/2124172539014344740,https://youtube.com/shorts/aFKw31iOr4o,,1 ball vs 394 bricks,yes,circle,none,grape,28,win,100,394,1,15,18,01_circle_none_333861.mp4,
+2026-11-22 00:39,https://x.com/i/status/2124301646343929999,https://youtube.com/shorts/fNNND8Pjtk4,,Green vs Purple. Comment your pick,no,diamond,none,green-vs-purple,35,green wins,100,221,1,10,23,01_battle_643952.mp4,
+2026-11-22 15:16,,https://youtube.com/watch?v=o5oJnkXf3Zw,,Episode 1,no,compilation,19 rounds,mixed,851,champion -,,,,,,episode_001.mp4,
+2026-11-22 16:31,https://x.com/i/status/2124541311650861442,https://youtube.com/shorts/_DBLRCCxIE4,,Who breaks out first? 🔴🟡🔵🟢,no,escape-8,course,escape-light,44,blue escapes,0,382,4,0,4,01_escape_978401.mp4,
+2026-11-23 00:35,https://x.com/i/status/2124662998253948982,https://youtube.com/shorts/68F4d3uc5KQ,,How fast can it break out? ⭕,no,rings-7,none,rings-7,32,escaped,100,412,1,0,1,01_rings_778969.mp4,
+2026-11-23 14:06,https://x.com/i/status/2124866983275499899,https://youtube.com/shorts/_DdM9KKCjnw,,Guess how long this takes,yes,pyramid,pillars,red,40,win,100,334,1,15,8,01_pyramid_pillars_448903.mp4,
