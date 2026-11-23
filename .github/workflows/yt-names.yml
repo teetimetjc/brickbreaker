@@ -1,0 +1,67 @@
+name: YouTube name requests
+
+# Weekly "Breaking YOUR names #N" Short from names viewers asked for in YouTube comments (namereq.py).
+# Skips quietly (names stay queued) until at least config name_requests.min_names requests exist.
+on:
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "Post for real (false = render only, video kept as an artifact)"
+        type: choice
+        options: ["false", "true"]
+        default: "false"
+  schedule:
+    - cron: "17 23 * * 3"   # Wednesday ~5:17 pm Chicago (an extra post that day)
+
+concurrency:
+  group: autopost
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  names:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install ffmpeg + Python packages
+        timeout-minutes: 12
+        run: |
+          for i in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update -y && \
+               timeout 180 sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends ffmpeg fonts-dejavu-core; then
+              break
+            fi
+            echo "apt attempt $i failed; retrying in 10s"; sleep 10
+          done
+          pip install -r requirements.txt
+      - name: Collect names, render, post
+        env:
+          AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE || 'true' }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python namereq.py
+      - name: Save logs to the repo
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/
+            git commit -m "Log name-request post (run ${{ github.run_number }})"
+            for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+          fi
+      - name: Keep the video
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: names-${{ github.run_number }}
+          path: output/names/
+          if-no-files-found: ignore

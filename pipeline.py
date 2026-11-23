@@ -120,6 +120,8 @@ def style_of(row):
     pal = row.get("palette") or ""
     if row.get("pattern") == "compilation":
         return "episode"
+    if row.get("pattern") == "names":
+        return "names"
     if pal.startswith("rings-"):
         return "rings"
     if pal.startswith("drop"):
@@ -295,14 +297,22 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     yt = {"title": yt_title, "description": yt_desc, "tags": cfg["youtube"]["tags"],
           "playlist": cfg["youtube"].get("playlists", {}).get(mode)}
     if cfg["youtube"].get("comments"):
-        yt["comment"] = channel_comment(meta, rng)
+        yt["comment"] = channel_comment(meta, rng, cfg.get("name_requests", {}).get("ask_share", 0))
     tags_tt = " ".join(cfg.get("tiktok", {}).get("hashtags", []))
     return {"youtube": yt, "x": {"text": x_text, "hook": hook, "hashtags": use_tags},
             "tiktok": {"text": f"{hook} {tags_tt}".strip()}}  # inbox drafts can't carry it; shown in captions.txt
 
 
-def channel_comment(meta, rng):
-    """The channel's own first comment: a question that invites replies (replies push videos to more viewers)."""
+NAME_ASKS = ["Comment your name and we'll break it in bricks next week 👇 (first names only)",
+             "Want YOUR name broken in bricks? Comment it 👇 We pick a few every week",
+             "Drop your first name 👇 A few get spelled in bricks and smashed next week"]
+
+
+def channel_comment(meta, rng, ask_share=0.0):
+    """The channel's own first comment: a question that invites replies (replies push videos to more viewers).
+    On some normal/ring videos it asks for names instead (namereq.py collects them; the text must say 'your name')."""
+    if meta.get("mode") in (None, "normal", "rings") and rng.random() < ask_share:
+        return rng.choice(NAME_ASKS)
     if meta.get("mode") == "rings":
         return rng.choice(["Which ring did you think would trap it? ⭕", "Which ring had you nervous? ⭕", "More rings next time? 👇"])
     if meta.get("mode") == "drop":

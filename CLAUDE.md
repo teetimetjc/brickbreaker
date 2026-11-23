@@ -75,7 +75,7 @@ them, ~500K–22M views).
   every Short (>=5 s in, ends >=1.5 s before the end card) for 2.5 s at 8.5% from the top; ffmpeg overlay after
   rendering (~6-9 s per video). Text from config mid_banner (race styles battle/escape/drop: "SUBSCRIBE & PICK THE
   NEXT COLOR"; normal/rings: "SUBSCRIBE FOR A NEW ONE DAILY"). Not on name videos. Why: avg view 16-26 s, so most
-  viewers never see the end card. Next up: YouTube name requests (#2).
+  viewers never see the end card.
 - VIEWER COLOR VOTE (2026-11-23, `votes.py`): when a battle comes up, the pipeline reads YouTube comments + replies on
   posts from the last 10 days, published after the last voted battle (posts.csv column `vote`, e.g. PURPLE:3), counts
   color words/emoji (red/blue/green|mint/purple|grape/yellow|gold, 🔴🔵🟢🟣🟡; not ❤), one vote per person per color,
@@ -84,6 +84,14 @@ them, ~500K–22M views).
   in the description and a "you picked X" channel comment. Unvoted battles: description + 50% of channel comments
   say "the most-picked color plays in the next battle". config vote {enabled, min_votes 1, max_days 10}.
   `python3 votes.py` prints the live tally. posts.csv header auto-upgrades when LOG_FIELDS grows.
+- YOUTUBE NAME REQUESTS (2026-11-23, `namereq.py`, workflow `yt-names.yml`, Wed 23:17 UTC + manual): ~35% of
+  normal/ring channel comments ask "Comment your name..." (pipeline.NAME_ASKS, config name_requests.ask_share; text
+  must match namereq.ASK_RX "your (first) name"). Weekly job reads 14 days of comments: lone names count only as
+  replies to that ask or on videos where it was asked; "my name is X"/"can you do X" count anywhere. Filters: letters,
+  1-2 words, COMMON words, BLOCK_SUB/BLOCK_WORD profanity + prank names (Mike Hunt etc.), one per person, each comment
+  once (data/name_requests.csv). Needs >= 2 names (max 3) else waits. Renders ~15 s per name (closed floor, always
+  CLEARED, last card "COMMENT YOUR NAME FOR NEXT WEEK"), concat -> "Breaking YOUR names #N 🧱 A, B & C" on YouTube
+  only (playlist "Your Names"), replies to each requester (no links), logs posts.csv pattern=names (style "names").
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER

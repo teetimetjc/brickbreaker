@@ -9,6 +9,7 @@
   "recent_hooks_to_avoid": 10,
   "subscribe_text": "SUBSCRIBE FOR MORE",
   "subscribe_text_race": "SUBSCRIBE FOR A NEW RACE EVERY DAY",
+  "name_requests": {"min_names": 2, "max_names": 3, "max_days": 14, "ask_share": 0.35},
   "vote": {"enabled": true, "min_votes": 1, "max_days": 10},
   "mid_banner": {"enabled": true, "race": "SUBSCRIBE & PICK THE NEXT COLOR", "normal": "SUBSCRIBE FOR A NEW ONE DAILY"},
   "youtube": {
@@ -33,10 +34,12 @@
       "escape": "Brick Escapes",
       "episode": "Weekly Episodes",
       "rings": "Ring Escapes",
-      "drop": "Brick Drops"
+      "drop": "Brick Drops",
+      "names": "Your Names"
     },
     "comments": true,
     "hashtags_by_style": {
+      "names": ["#yourname", "#satisfying", "#brickbreaker"],
       "battle": [
         "#colorbattle",
         "#pickaside",
