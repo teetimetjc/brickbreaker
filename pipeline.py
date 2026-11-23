@@ -49,7 +49,7 @@ SHAPE_NAMES = {"solid": "wall", "checker": "checkerboard", "stripes": "stripes",
 HOOKS = {
     "any": ["Will it clear? Watch to the end", "{count} bricks vs {balls}", "Don't look away", "This one gets intense", "Turn the sound on for this one",
             "{count} bricks. Place your bets."],
-    "win": ["Guess which brick goes last 👀", "Wait for the last brick", "Don't look away before 100%",
+    "win": ["Guess which brick goes last 👀", "Guess how long this takes", "How fast can it clear {count} bricks?", "Wait for the last brick", "Don't look away before 100%",
             "Can it clear all {count} bricks?", "Satisfying all the way to the last brick",
             "Watch the {shape} disappear"],
     "lose": ["Will it make it?", "Every miss costs a ball", "Guess the final %", "Don't drop the last ball...",
@@ -68,13 +68,23 @@ HOOKS = {
                "{a} vs {b}. This one goes down to the wire"],
     # brick escape: 4 balls race to the finish line
     "rings": ["Can it escape all {n} rings? ⭕", "{n} rings. 1 ball. Which one traps it longest?", "Every gap is a way out...",
-              "Can it break out? ⭕", "Wait for the last ring 👀", "Guess which ring it gets stuck in 👀"],
+              "Can it break out? ⭕", "Wait for the last ring 👀", "Guess which ring it gets stuck in 👀",
+              "{n} rings. 1 ball. Guess the time ⏱️", "How fast can it break out? ⭕", "Guess how many seconds ⏱️"],
     "drop": ["Pick your color 🔴🟡🔵🟢", "Which bin fills first? 🔴🟡🔵🟢", "{balls} balls. 4 colors. Pick one 👇",
              "The bricks keep breaking... pick a color 🔴🟡🔵🟢", "Comment your color before it ends 👇"],
     "escape": ["Pick your ball 🔴🟡🔵🟢", "Which one escapes first? 🔴🟡🔵🟢", "Pick a color before it starts 🔴🟡🔵🟢",
                "4 balls. 1 exit. Pick yours 🔴🟡🔵🟢", "Who breaks out first? 🔴🟡🔵🟢",
                "Comment your color 🔴🟡🔵🟢 No switching!"],
 }
+
+
+# A/B test (2026-11-23): "guess the time" titles. A commenter noted the video length gives the answer away, but
+# corrections are still comments. Compared against the other hooks in the weekly report (yt_tools.py).
+TIME_HOOK_WORDS = ("how long", "how fast", "guess the time", "how many seconds")
+
+
+def is_time_hook(hook):
+    return any(w in (hook or "").lower() for w in TIME_HOOK_WORDS)
 
 
 def season_of(when):

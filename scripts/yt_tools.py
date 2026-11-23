@@ -218,6 +218,11 @@ def report(days):
         lines.append(f"\n**{label}:** " + ", ".join(
             f"{v}: {avg([x for x in shorts if x[key] == v], 'views_now'):.0f} avg views "
             f"({len([x for x in shorts if x[key] == v])} videos)" for v in vals))
+    th = [x for x in shorts if pipeline.is_time_hook(x["hook"])]
+    oth = [x for x in shorts if not pipeline.is_time_hook(x["hook"])]
+    lines.append(f"\n**\"guess the time\" titles (A/B):** time: {avg(th, 'views_now'):.0f} avg views, "
+                 f"{avg(th, 'comments_now'):.1f} comments/video ({len(th)} videos) | others: "
+                 f"{avg(oth, 'views_now'):.0f} avg views, {avg(oth, 'comments_now'):.1f} comments/video ({len(oth)} videos)")
     lines += ["\n**Top 5 by views**", "| when | style | hook | views | avg view (s) |", "|---|---|---|---|---|"]
     for x in sorted(out, key=lambda x: -x["views_now"])[:5]:
         lines.append(f"| {x['time_utc']} | {x['style']} | {x['hook']} | {x['views_now']} | {x['averageViewDuration']} |")

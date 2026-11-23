@@ -68,7 +68,9 @@ them, ~500K–22M views).
 - Titles/captions: pipeline.py HOOKS + pick_hook() choose ONE hook per video from what actually happened
   (win/lose, start balls, bonus mode, obstacle, real brick count); used for the YouTube title and X text;
   skips hooks used in the last `recent_hooks_to_avoid` posts (from data/posts.csv). Never spoil the ending.
-  No "guess the time / how long" hooks or comments: viewers just read the video length (commenter, 2026-11-23).
+  A/B TEST (2026-11-23): "guess the time / how long" TITLES stay in the hook pools next to non-time ones (a commenter
+  said the video length gives it away, but corrections are comments too); pipeline.is_time_hook tags them and the
+  weekly report compares views + comments/video. Channel comments never ask about time. Decide at the Dec review.
 - MID-VIDEO SUBSCRIBE BANNER (2026-11-22, `banner.py`): red YouTube-style pill with play icon, pops in ~40% into
   every Short (>=5 s in, ends >=1.5 s before the end card) for 2.5 s at 8.5% from the top; ffmpeg overlay after
   rendering (~6-9 s per video). Text from config mid_banner (race styles battle/escape/drop: "SUBSCRIBE & PICK THE
