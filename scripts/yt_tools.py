@@ -190,7 +190,7 @@ def report(days):
     for r in rows:
         a, s = ana.get(r["video_id"], {}), stats.get(r["video_id"], {})
         out.append(dict(time_utc=r["time_utc"], video_id=r["video_id"], style=pipeline.style_of(r), hook=r["hook"],
-                        hashtags=r["hashtags"], pattern=r["pattern"], obstacle=r["obstacle"], length_s=r["duration_s"],
+                        hashtags=r["hashtags"], pattern=r["pattern"], obstacle=r["obstacle"], palette=r["palette"], length_s=r["duration_s"],
                         outcome=r["outcome"], views_now=int(s.get("viewCount", 0)), likes_now=int(s.get("likeCount", 0)),
                         comments_now=int(s.get("commentCount", 0)),
                         **{m: a.get(m, "") for m in METRICS}))

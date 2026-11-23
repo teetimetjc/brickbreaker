@@ -30,13 +30,18 @@ CALM_OBSTACLES = ["none", "none", "none", "pillars", "shelves"]
 FADE = 1.5  # seconds of fade at each scene boundary
 
 
-def scene_cfg(rng, seconds, used):
+# A/B variants, one per video (logged as palette relax-<sound>, length in duration_s) - compared in the weekly report
+SOUNDS = {"both": "soft notes + ambient pad", "pad": "ambient pad only, no break sounds", "notes": "soft notes only"}
+LENGTHS = [60, 60, 180]   # minutes; most sleep listeners want 1 h or 3 h
+
+
+def scene_cfg(rng, seconds, used, sound="both"):
     pats = [p for p in CALM_PATTERNS if p not in used[-3:]] or CALM_PATTERNS
     cfg = gen.default_cfg(size=gen.SIZES["landscape"])
     cfg.update(seed=rng.randint(1, 10 ** 6), pattern=rng.choice(pats), obstacle=rng.choice(CALM_OBSTACLES),
                palette=rng.choice(list(gen.PALETTES)), lose=False, outcome="win", hp=1, balls=None, split_every=0,
                target=seconds, max_len=seconds * 1.35, end_card=False, soft_audio=True, cold_open=False,
-               max_px_per_sec=rng.uniform(520, 680), max_cell=36)  # unhurried balls; tuner adds balls instead
+               max_px_per_sec=rng.uniform(520, 680), max_cell=36, soft_mix=sound)  # unhurried balls; tuner adds balls instead
     return cfg
 
 
@@ -51,7 +56,7 @@ def fade(src, dst, dur):
         raise RuntimeError("ffmpeg fade failed")
 
 
-def make_relax(total_min, out_path, seed=None, verbose=True, scene_range=(180, 300)):
+def make_relax(total_min, out_path, seed=None, verbose=True, scene_range=(180, 300), sound="both"):
     rng = random.Random(seed)
     work = out_path[:-4] + "_scenes"
     os.makedirs(work, exist_ok=True)
@@ -59,7 +64,7 @@ def make_relax(total_min, out_path, seed=None, verbose=True, scene_range=(180, 3
     while remaining > 45:
         lo, hi = scene_range
         sec = min(remaining, rng.uniform(lo, hi)) if remaining > hi * 1.2 else remaining
-        cfg = scene_cfg(rng, round(sec), used)
+        cfg = scene_cfg(rng, round(sec), used, sound)
         raw = os.path.join(work, f"raw_{len(parts):02d}.mp4")
         if verbose:
             print(f"scene {len(parts) + 1}: {cfg['pattern']}/{cfg['obstacle']}/{cfg['palette']} ~{sec / 60:.1f} min")
@@ -85,7 +90,7 @@ def make_relax(total_min, out_path, seed=None, verbose=True, scene_range=(180, 3
     total = sum(s["seconds"] for s in scenes)
     if verbose:
         print(f"wrote {out_path}: {total / 60:.1f} min, {len(scenes)} scenes")
-    return dict(file=out_path, duration=total, scenes=scenes)
+    return dict(file=out_path, duration=total, scenes=scenes, sound=sound)
 
 
 # ------------------------------------------------------------------ publishing
@@ -121,8 +126,10 @@ def captions(meta, vol, cfg, rng):
         shape = {"solid": "wall", "checker": "checkerboard"}.get(s["pattern"], s["pattern"])
         chapters.append(f"{stamp} Scene {i + 1}: {shape}")
         t += s["seconds"]
-    desc = "\n".join([f"Relax Vol. {vol}: {label.lower()} of calm, oddly satisfying brick breaking. Soft sounds, no "
-                      "talking, no ads in the middle of the action. Put it on while you study, work or fall asleep.",
+    sound = {"both": "Soft sounds", "pad": "A quiet ambient hum (no break sounds)",
+             "notes": "Soft brick sounds"}[meta.get("sound", "both")]
+    desc = "\n".join([f"Relax Vol. {vol}: {label.lower()} of calm, oddly satisfying brick breaking. {sound}, no "
+                      "talking. Put it on while you study, work or fall asleep.",
                       "", *chapters, "", "New relaxing videos every week. Subscribe for more 🧱", "", " ".join(tags)])
     return {"title": title[:100], "description": desc, "tags": cfg["youtube"]["tags"] + ["relaxing", "sleep",
                                                                                            "study", "asmr", "calm"],
@@ -157,7 +164,8 @@ def thumbnail(video, out, label):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--minutes", type=float, default=60)
+    ap.add_argument("--minutes", type=float, default=0, help="0 = pick from LENGTHS (A/B)")
+    ap.add_argument("--sound", default="auto", choices=["auto", *SOUNDS], help="auto = random (A/B)")
     ap.add_argument("--out", default="relax.mp4")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--live", action="store_true")
@@ -167,7 +175,10 @@ def main():
     import pipeline
     cfg = pipeline.load_config(os.path.join(HERE, "config.json"))
     rng = random.Random(a.seed)
-    meta = make_relax(a.minutes, a.out, seed=rng.randint(1, 10 ** 6),
+    minutes = a.minutes or rng.choice(LENGTHS)
+    sound = a.sound if a.sound != "auto" else rng.choice(list(SOUNDS))
+    print(f"relax: {minutes:.0f} min, sound = {SOUNDS[sound]}")
+    meta = make_relax(minutes, a.out, seed=rng.randint(1, 10 ** 6), sound=sound,
                       scene_range=tuple(float(x) for x in a.scene_sec.split(",")))
     vol = volume_number()
     cap = captions(meta, vol, cfg, rng)
@@ -185,7 +196,7 @@ def main():
             print("thumbnail set")
         except Exception as e:
             print(f"thumbnail skipped: {e}")
-        v = dict(file=a.out, pattern="relax", obstacle=f"{len(meta['scenes'])} scenes", palette="relax",
+        v = dict(file=a.out, pattern="relax", obstacle=f"{len(meta['scenes'])} scenes", palette=f"relax-{sound}",
                  duration=meta["duration"], outcome="", cleared_pct="", bricks=sum(s["bricks"] for s in meta["scenes"]),
                  start_balls="", bonus_every="", peak_balls="")
         pipeline.append_post_log([{"video": v, "captions": {"x": {"hook": f"Relax Vol. {vol}", "hashtags": False}},

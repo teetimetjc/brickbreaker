@@ -98,6 +98,9 @@ them, ~500K–22M views).
   gen cfg end_card=False + soft_audio=True (soft low notes + ambient pad), 1.5 s fades, concat. Title from TITLES,
   chapters per scene, thumbnail "1 HOUR / RELAX · STUDY · SLEEP" from 12 s in, playlist "Relax, Study & Sleep",
   posts.csv pattern=relax (excluded from Shorts variety rules). Render ~35 min per hour on GitHub.
+  APPROVED + SCHEDULED 2026-11-23 (Trevor: "anything and everything to keep content different and testing"): weekly
+  Thu ~7:47 pm Chicago (cron 47 1 * * 5). A/B per video: length 60/60/180 min, sound both|pad|notes (gen soft_mix),
+  logged as palette relax-<sound>; report CSV now has palette for comparing watch time.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
