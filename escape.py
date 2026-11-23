@@ -366,7 +366,7 @@ class _AudioLayout:  # what gen.build_audio needs to pitch brick sounds by heigh
 def make_escape(cfg, out_path=None, preview=None, verbose=True):
     """cfg: seed, target, [theme 'dark'|'light'|None=random], [reject_over]. Returns metadata."""
     rng = random.Random(cfg["seed"])
-    theme = cfg.get("theme") or rng.choice(["dark", "light"])
+    theme = cfg.get("theme") or "dark"  # Trevor prefers the black background (2026-11-23); light only if asked
     layers, speed, sim_seed, t_win, win, gap, ch = tune(cfg["seed"], cfg["target"], verbose)
     limit = cfg.get("reject_over")
     if limit and t_win / FPS > limit:

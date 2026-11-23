@@ -30,8 +30,8 @@ them, ~500K–22M views).
 - `escape.py` – BRICK ESCAPE: 4 balls (RED/YELLOW/BLUE/GREEN, colors shuffled per race) rise (LIFT) through
   5–8 brick barriers to a checkered finish; neutral bricks break for all, team bricks only for that color,
   balls bump each other. Tuner simulates ~14 seeds per course/speed and picks a close finish with lead changes
-  (lead = highest point reached). Themes: `dark` / `light` (random per video, logged as palette escape-<theme>
-  for the engagement A/B). Own physics + Painter (not gen.Sim). `python3 escape.py --theme light --out e.mp4`.
+  (lead = highest point reached). Themes: `dark` / `light`; DARK ONLY since 2026-11-23 (Trevor prefers the black
+  background; light still available via --theme light). Logged as palette escape-<theme>. Own physics + Painter (not gen.Sim). `python3 escape.py --theme light --out e.mp4`.
 - `compilation.py` – WEEKLY LONG-FORM YouTube episode, widescreen 1920x1080, kept under 14:40 (YouTube needs a
   phone-verified channel for >15 min). Fresh rounds (normal/battle/escape, via battle.configure /
   escape.configure(1920,1080), plus rings/drop since 2026-11-22) with "ROUND N" cards + running color leaderboard, outro with final standings,
