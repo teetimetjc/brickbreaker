@@ -122,6 +122,8 @@ def style_of(row):
         return "episode"
     if row.get("pattern") == "names":
         return "names"
+    if row.get("pattern") == "relax":
+        return "relax"
     if pal.startswith("rings-"):
         return "rings"
     if pal.startswith("drop"):
@@ -136,7 +138,7 @@ def recent_posts(n=12):
     if not os.path.exists(path):
         return []
     with open(path, newline="") as f:
-        rows = [r for r in csv.DictReader(f) if style_of(r) != "episode"]
+        rows = [r for r in csv.DictReader(f) if style_of(r) not in ("episode", "relax", "names")]
     for r in rows:
         r["style"] = style_of(r)
     return rows[-n:]

@@ -624,7 +624,8 @@ def shift_events(events, offset):
     return [(f - offset, k, r) for f, k, r in events if f >= offset]
 
 
-def build_audio(events, total_frames, L, end_frame, won, path, sr=44100):
+def build_audio(events, total_frames, L, end_frame, won, path, sr=44100, soft=False):
+    """soft=True (relax videos): quieter, rounder, longer notes, gentle paddle, plus a slow ambient pad."""
     n = int(total_frames / FPS * sr) + sr
     mix = np.zeros(n, np.float32)
     semis = [0, 2, 4, 7, 9]
@@ -640,18 +641,19 @@ def build_audio(events, total_frames, L, end_frame, won, path, sr=44100):
     for fr, kind, row in events:
         t0 = fr / FPS
         if kind == "brick":
-            if t0 - last < 0.022:
+            if t0 - last < (0.07 if soft else 0.022):
                 continue
             last = t0
             frac = 1 - (row - L.brick_top) / max(1, L.brick_bot - L.brick_top)
             idx = int(min(max(frac, 0), 0.999) * len(notes))
             key = ("b", idx)
             if key not in cache:
-                cache[key] = tone(notes[idx], 0.12, 0.22, 38)
+                cache[key] = (tone(notes[idx] / 2, 0.6, 0.09, 6, harm=0.08) if soft
+                              else tone(notes[idx], 0.12, 0.22, 38))
             w = cache[key]
         elif kind == "paddle":
             if "p" not in cache:
-                cache["p"] = tone(150, 0.09, 0.28, 45, harm=0.6)
+                cache["p"] = tone(110, 0.25, 0.07, 14, harm=0.1) if soft else tone(150, 0.09, 0.28, 45, harm=0.6)
             w = cache["p"]
         elif kind == "lost":
             if "l" not in cache:
@@ -667,7 +669,12 @@ def build_audio(events, total_frames, L, end_frame, won, path, sr=44100):
             continue
         i = int(t0 * sr)
         mix[i:i + len(w)] += w[: max(0, n - i)]
-    if end_frame is not None:
+    if soft:  # slow-breathing pad: A minor-ish chord, fades with a 9 s LFO
+        t = np.arange(n) / sr
+        lfo = 0.55 + 0.45 * np.sin(2 * np.pi * t / 9.0)
+        pad = sum(np.sin(2 * np.pi * f * t + k) for k, f in enumerate((110.0, 164.8, 220.0, 261.6)))
+        mix += (pad * lfo * 0.018).astype(np.float32)
+    if end_frame is not None and not soft:
         i = int(end_frame / FPS * sr)
         notes_end = (523, 659, 784, 1047) if won else (392, 311, 262, 196)
         gap = 0.09 if won else 0.22
@@ -731,7 +738,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
         for cell in cells:
             L, grid, hp = setup_level(cfg, cell)
             kw["paddle_w"] = cfg["paddle_w"] or max(3, round(150 / cell))
-            hi = MAX_PX_PER_SEC / (cell * FPS)
+            hi = cfg.get("max_px_per_sec", MAX_PX_PER_SEC) / (cell * FPS)
             for nb in ball_opts:
                 kw["balls"], kw["split_every"], kw["max_balls"] = nb
                 for ss in seeds:
@@ -772,7 +779,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
     ren = Renderer(L, sim, cfg["palette"], title, cfg["hp"])
     ren.card_extras = cfg.get("card_extras")
     max_frames = int(cfg["max_len"] * FPS)
-    hold = int(2.5 * FPS)
+    hold = int((2.5 if cfg.get("end_card", True) else 1.5) * FPS)
 
     if preview:
         want = sorted(int(t * FPS) for t in preview)
@@ -806,7 +813,8 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
         enc.stdin.write(ren.frame().tobytes())
         total += 1
     end_frame = sim.frame - pre if sim.finished else None
-    card = ren.end_card((sim.frame - pre) // FPS, sim.done) if sim.finished else None
+    card = (ren.end_card((sim.frame - pre) // FPS, sim.done) if sim.finished and cfg.get("end_card", True)
+            else None)
     sim.changed = []
     for i in range(hold):
         ov = None
@@ -818,7 +826,7 @@ def make_video(cfg, out_path=None, preview=None, verbose=True):
     enc.stdin.close()
     if enc.wait() != 0:
         raise RuntimeError("ffmpeg video encode failed")
-    build_audio(shift_events(sim.events, pre), total, L, end_frame, sim.done, tmp_a)
+    build_audio(shift_events(sim.events, pre), total, L, end_frame, sim.done, tmp_a, soft=cfg.get("soft_audio", False))
     r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp_v, "-i", tmp_a, "-map", "0:v", "-map", "1:a",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", tmp_o])
     if r.returncode != 0:

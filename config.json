@@ -35,11 +35,13 @@
       "episode": "Weekly Episodes",
       "rings": "Ring Escapes",
       "drop": "Brick Drops",
-      "names": "Your Names"
+      "names": "Your Names",
+      "relax": "Relax, Study & Sleep"
     },
     "comments": true,
     "hashtags_by_style": {
       "names": ["#yourname", "#satisfying", "#brickbreaker"],
+      "relax": ["#relaxing", "#sleepmusic", "#satisfying"],
       "battle": [
         "#colorbattle",
         "#pickaside",
