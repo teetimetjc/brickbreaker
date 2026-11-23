@@ -176,7 +176,7 @@ def round_sub_before(kind, rng):
     if kind == "escape":
         return rng.choice(["4 balls. 1 exit.", "Pick your ball!", "Who escapes first?"])
     if kind == "rings":
-        return rng.choice(["Guess the time!", "Can it break out?", "Every gap is a way out..."])
+        return rng.choice(["Which ring traps it longest?", "Can it break out?", "Every gap is a way out..."])
     if kind == "drop":
         return rng.choice(["Pick your color!", "Which bin fills first?", "Bricks break. Paths change."])
     return rng.choice(["Will it clear?", "Can it make it?", "Wait for the last brick..."])

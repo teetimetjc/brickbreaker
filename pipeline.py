@@ -49,8 +49,8 @@ SHAPE_NAMES = {"solid": "wall", "checker": "checkerboard", "stripes": "stripes",
 HOOKS = {
     "any": ["Will it clear? Watch to the end", "{count} bricks vs {balls}", "Don't look away", "This one gets intense", "Turn the sound on for this one",
             "{count} bricks. Place your bets."],
-    "win": ["Guess how long this takes", "Wait for the last brick", "Don't look away before 100%",
-            "How fast can it clear {count} bricks?", "Satisfying all the way to the last brick",
+    "win": ["Guess which brick goes last 👀", "Wait for the last brick", "Don't look away before 100%",
+            "Can it clear all {count} bricks?", "Satisfying all the way to the last brick",
             "Watch the {shape} disappear"],
     "lose": ["Will it make it?", "Every miss costs a ball", "Guess the final %", "Don't drop the last ball...",
              "How close can it get?", "Does it clear or run out of balls?"],
@@ -67,8 +67,8 @@ HOOKS = {
                "{a} vs {b}. No switching sides", "Same bricks, same start. Who wins?", "Pick a side: {a} or {b}",
                "{a} vs {b}. This one goes down to the wire"],
     # brick escape: 4 balls race to the finish line
-    "rings": ["Can it escape all {n} rings? ⭕", "{n} rings. 1 ball. Guess the time ⏱️", "Every gap is a way out...",
-              "How fast can it break out? ⭕", "Wait for the last ring 👀", "Guess how many seconds ⏱️"],
+    "rings": ["Can it escape all {n} rings? ⭕", "{n} rings. 1 ball. Which one traps it longest?", "Every gap is a way out...",
+              "Can it break out? ⭕", "Wait for the last ring 👀", "Guess which ring it gets stuck in 👀"],
     "drop": ["Pick your color 🔴🟡🔵🟢", "Which bin fills first? 🔴🟡🔵🟢", "{balls} balls. 4 colors. Pick one 👇",
              "The bricks keep breaking... pick a color 🔴🟡🔵🟢", "Comment your color before it ends 👇"],
     "escape": ["Pick your ball 🔴🟡🔵🟢", "Which one escapes first? 🔴🟡🔵🟢", "Pick a color before it starts 🔴🟡🔵🟢",
@@ -239,7 +239,7 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     setup += f", plus 1 more every {meta['bonus_every']} bricks." if meta["bonus_every"] else "."
     if meta.get("mode") == "rings":
         yt_desc = "\n".join([hook, "", f"One ball, {meta.get('rings', 7)} spinning rings of bricks. Every time it slips "
-                              "through a gap, that ring shatters. Escape them all.", "Guess the time in the comments!",
+                              "through a gap, that ring shatters. Escape them all.", "Which ring was the toughest? Tell us in the comments!",
                               "", " ".join(style_tags)])
     elif meta.get("mode") == "drop":
         yt_desc = "\n".join([hook, "", f"{meta['start_balls']} balls drop through a board of bricks that crack and "
@@ -272,7 +272,7 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
 def channel_comment(meta, rng):
     """The channel's own first comment: a question that invites replies (replies push videos to more viewers)."""
     if meta.get("mode") == "rings":
-        return rng.choice(["What time did you guess? ⏱️", "Which ring had you nervous? ⭕", "More rings next time? 👇"])
+        return rng.choice(["Which ring did you think would trap it? ⭕", "Which ring had you nervous? ⭕", "More rings next time? 👇"])
     if meta.get("mode") == "drop":
         return rng.choice(["Which color did you pick? 🔴🟡🔵🟢", "Did your bin win? Comment your color 👇",
                            "Close one! Who called it? 👀"])
@@ -289,7 +289,7 @@ def channel_comment(meta, rng):
         return rng.choice([f"{100 - meta['cleared_pct']}% away. Did you think it would make it? 😬",
                            "So close! What % did you guess before the end?",
                            "Should it get a rematch? 👇"])
-    return rng.choice(["What time did you guess before the end? ⏱️",
+    return rng.choice(["Where did you think the last brick would be? 👀",
                        "Most satisfying moment? Comment the timestamp 👇",
                        "Which shape should we try next? 👇"])
 
