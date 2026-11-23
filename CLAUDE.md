@@ -92,6 +92,12 @@ them, ~500K–22M views).
   once (data/name_requests.csv). Needs >= 2 names (max 3) else waits. Renders ~15 s per name (closed floor, always
   CLEARED, last card "COMMENT YOUR NAME FOR NEXT WEEK"), concat -> "Breaking YOUR names #N 🧱 A, B & C" on YouTube
   only (playlist "Your Names"), replies to each requester (no links), logs posts.csv pattern=names (style "names").
+- RELAX VIDEOS (2026-11-23, `relax.py`, workflow `relax.yml` MANUAL ONLY until Trevor approves the sample): 1-hour
+  widescreen long-form for YPP watch hours (Shorts watch time doesn't count). 12-15 calm scenes of 3-5 min (closed floor,
+  max_px_per_sec 520-680 so the tuner adds balls instead of speed, calm shapes, obstacles none/pillars/shelves),
+  gen cfg end_card=False + soft_audio=True (soft low notes + ambient pad), 1.5 s fades, concat. Title from TITLES,
+  chapters per scene, thumbnail "1 HOUR / RELAX · STUDY · SLEEP" from 12 s in, playlist "Relax, Study & Sleep",
+  posts.csv pattern=relax (excluded from Shorts variety rules). Render ~35 min per hour on GitHub.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
