@@ -13,7 +13,8 @@ on:
         description: "Length in minutes (0 = random 60/60/180 for the A/B test)"
         default: "0"
   schedule:
-    - cron: "47 1 * * 5"   # Thursday ~7:47 pm Chicago (people put these on at night)
+    - cron: "47 1 * * 2"   # Monday ~7:47 pm Chicago (people put these on at night)
+    - cron: "47 1 * * 5"   # Thursday ~7:47 pm Chicago. Max 2/week: more risks looking mass-produced
 
 concurrency:
   group: relax

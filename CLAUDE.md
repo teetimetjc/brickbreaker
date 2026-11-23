@@ -98,8 +98,8 @@ them, ~500K–22M views).
   gen cfg end_card=False + soft_audio=True (soft low notes + ambient pad), 1.5 s fades, concat. Title from TITLES,
   chapters per scene, thumbnail "1 HOUR / RELAX · STUDY · SLEEP" from 12 s in, playlist "Relax, Study & Sleep",
   posts.csv pattern=relax (excluded from Shorts variety rules). Render ~35 min per hour on GitHub.
-  APPROVED + SCHEDULED 2026-11-23 (Trevor: "anything and everything to keep content different and testing"): weekly
-  Thu ~7:47 pm Chicago (cron 47 1 * * 5). A/B per video: length 60/60/180 min, sound both|pad|notes (gen soft_mix),
+  APPROVED + SCHEDULED 2026-11-23 (Trevor: "anything and everything to keep content different and testing"): TWICE weekly
+  Mon + Thu ~7:47 pm Chicago (crons 47 1 * * 2 / 47 1 * * 5); Vol. 1 started by hand Mon 2026-11-23. A/B per video: length 60/60/180 min, sound both|pad|notes (gen soft_mix),
   logged as palette relax-<sound>; report CSV now has palette for comparing watch time.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
@@ -194,6 +194,9 @@ them, ~500K–22M views).
   and the run summary. Runs every Monday 14:41 UTC automatically.
 
 ## Constraints / gotchas
+- SAFE POSTING CEILING (Trevor 2026-11-23: "as many as won't get us throttled or shut down"): 2 Shorts/day + names
+  Short weekly + episode weekly + relax 2x/week. Raise Shorts to 3/day only after the Dec review if retention holds.
+  Never more than 2 relax/week (they look the most alike -> YPP "repetitious/inauthentic content" rejection risk).
 - YouTube: unaudited API projects CAN get uploads locked to PRIVATE (not seen so far) – if it happens, apply for
   the compliance audit or use an audited posting service. Upload quota isn't the issue (100/day).
 - YouTube "inauthentic content" policy: avoid mass-produced near-identical uploads. Keep 1–2 posts/day with
