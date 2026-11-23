@@ -133,7 +133,7 @@ def captions(meta, vol, cfg, rng):
 def thumbnail(video, out, label):
     """1280x720: a calm mid-video frame, soft vignette, big '1 HOUR' + 'RELAX · STUDY · SLEEP'."""
     still = out[:-4] + "_frame.jpg"
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", "100", "-i", video, "-frames:v", "1", still],
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", "12", "-i", video, "-frames:v", "1", still],
                    check=True)
     img = Image.open(still).convert("RGB").resize((1280, 720), Image.LANCZOS)
     os.remove(still)
