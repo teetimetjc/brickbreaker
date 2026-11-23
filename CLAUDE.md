@@ -181,7 +181,8 @@ them, ~500K–22M views).
   the compliance audit or use an audited posting service. Upload quota isn't the issue (100/day).
 - YouTube "inauthentic content" policy: avoid mass-produced near-identical uploads. Keep 1–2 posts/day with
   lots of variety (shapes, obstacles, lengths, endings).
-- X API is pay-per-use: ~$0.015 per post, ~$0.20 if the post has a link – keep links out. Label the account
+- X API is pay-per-use: ~$0.015 per post, ~$0.20 if the post has a link – keep links out.
+  NO X analytics reads (Trevor 2026-11-23: don't spend credit on it; he checks the 📊 on posts himself). Label the account
   "Automated" in X settings.
 - TikTok: unaudited apps can only post privately (audit ~2–6 weeks).
 - Instagram: Business/Creator account linked to a Facebook Page + Meta app review; video must be at a public URL.
