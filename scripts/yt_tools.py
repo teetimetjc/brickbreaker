@@ -232,9 +232,12 @@ def report(days):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["check", "backfill", "report"])
+    ap.add_argument("action", choices=["check", "backfill", "report", "votes"])
     ap.add_argument("--days", type=int, default=0, help="report window in days (0 = since the first post)")
     a = ap.parse_args()
+    if a.action == "votes":
+        import votes
+        return votes.debug()
     {"check": check, "backfill": backfill, "report": lambda: report(a.days)}[a.action]()
 
 

@@ -6,7 +6,7 @@ on:
       action:
         description: "check = token scopes, backfill = playlists + comments on old uploads, report = analytics"
         type: choice
-        options: [check, backfill, report]
+        options: [check, backfill, report, votes]
         default: check
       days:
         description: "Report window in days (0 = since the first post)"

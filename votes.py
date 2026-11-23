@@ -121,8 +121,18 @@ def pick(counts, rng, min_votes=1):
     return ranked[0][0], second
 
 
-if __name__ == "__main__":
-    sys.path.insert(0, HERE)
+def debug():
+    yt = _service()
+    me = yt.channels().list(part="id", mine=True).execute()["items"][0]["id"]
     vids, since = window()
     print(f"reading {len(vids)} videos, votes after {since:%Y-%m-%d %H:%M} UTC")
-    print(tally() or "no votes (or no YouTube keys)")
+    n = 0
+    for author, text, published in fetch_comments(yt, vids):
+        n += 1
+        who = "channel" if author == me else "viewer"
+        print(f"  [{who}] {published[:16]} {colors_in(text) if who == 'viewer' else ''} {text[:70]!r}")
+    print(f"{n} comments read; tally: {tally() or 'no votes yet'}")
+
+
+if __name__ == "__main__":
+    debug()
