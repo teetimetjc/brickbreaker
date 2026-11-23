@@ -2,6 +2,8 @@
   "videos_per_run": 1,
   "min_len_sec": 20,
   "max_len_sec": 45,
+  "length_override": {"from_utc": "2026-11-23 20:00", "until_utc": "2026-11-24 04:00", "min_len_sec": 15,
+                      "max_len_sec": 25, "note": "Trevor 2026-11-23: test a 15-25 s Short in tonight's post"},
   "game_over_share": 0.3,
   "battle_share": 0.2,
   "escape_share": 0.2,

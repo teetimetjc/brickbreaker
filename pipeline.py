@@ -367,6 +367,11 @@ def main():
         x.tweet_id(a.quote)  # fail fast on a bad link, before spending time rendering
 
     cfg = load_config(a.config)
+    ov = cfg.get("length_override") or {}
+    now_s = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M")
+    if ov and ov.get("from_utc", "") <= now_s < ov.get("until_utc", ""):  # one-off length test (e.g. a 15-25 s night)
+        cfg["min_len_sec"], cfg["max_len_sec"] = ov["min_len_sec"], ov["max_len_sec"]
+        print(f"== length override: {ov['min_len_sec']}-{ov['max_len_sec']} s ({ov.get('note', '')})")
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
     raw_names = [n.strip() for n in a.names.split(",") if format_name(n)]
     names = [format_name(n) for n in raw_names]
