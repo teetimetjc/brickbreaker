@@ -19,29 +19,36 @@ import brick_breaker_gen as gen
 YT_RED = (230, 33, 23)
 
 
-def banner_png(text, W, path):
-    """Red pill, white rounded 'play' badge on the left, bold white text. Sized from the video width."""
+def banner_png(text, W, path, parts=None, fill=YT_RED, icon_on=True):
+    """Red pill, white rounded 'play' badge on the left, bold white text. Sized from the video width.
+    parts=[(text, rgb), ...] draws multi-colored text instead (e.g. "YOU VOTED " white + "PURPLE" in purple)."""
+    parts = parts or [(text, (255, 255, 255))]
+    text = "".join(t for t, _ in parts)
     fs = int(W * 0.042)
     f = gen.font(fs)
     while f.getlength(text) > W * 0.6 and fs > 20:  # stay inside the 11.5% side margins with room for the icon
         fs -= 2
         f = gen.font(fs)
     h = int(fs * 2.1)
-    icon = int(h * 0.62)
+    icon = int(h * 0.62) if icon_on else 0
     pad = int(h * 0.38)
-    w = int(pad + icon + pad * 0.8 + f.getlength(text) + pad * 1.2)
+    w = int(pad + icon + (pad * 0.8 if icon_on else pad * 0.3) + f.getlength(text) + pad * 1.2)
     sh = int(h * 0.12)                                     # soft drop shadow so it reads on light and dark scenes
     img = Image.new("RGBA", (w + sh, h + sh), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     d.rounded_rectangle((sh, sh, w + sh - 1, h + sh - 1), radius=h // 2, fill=(0, 0, 0, 110))
-    d.rounded_rectangle((0, 0, w - 1, h - 1), radius=h // 2, fill=YT_RED + (255,), outline=(255, 255, 255, 255),
+    d.rounded_rectangle((0, 0, w - 1, h - 1), radius=h // 2, fill=tuple(fill) + (255,), outline=(255, 255, 255, 255),
                         width=max(3, h // 18))
     ix, iy = pad, (h - icon) // 2
-    d.rounded_rectangle((ix, iy, ix + icon, iy + icon), radius=icon // 4, fill=(255, 255, 255, 255))
-    t = icon * 0.28
-    cx, cy = ix + icon / 2 + t * 0.15, iy + icon / 2
-    d.polygon([(cx - t, cy - t * 1.15), (cx - t, cy + t * 1.15), (cx + t * 1.25, cy)], fill=YT_RED + (255,))
-    d.text((ix + icon + pad * 0.8, h / 2), text, font=f, fill=(255, 255, 255, 255), anchor="lm")
+    if icon_on:
+        d.rounded_rectangle((ix, iy, ix + icon, iy + icon), radius=icon // 4, fill=(255, 255, 255, 255))
+        t = icon * 0.28
+        cx, cy = ix + icon / 2 + t * 0.15, iy + icon / 2
+        d.polygon([(cx - t, cy - t * 1.15), (cx - t, cy + t * 1.15), (cx + t * 1.25, cy)], fill=tuple(fill) + (255,))
+    x = ix + icon + (pad * 0.8 if icon_on else pad * 0.3)
+    for t_, col in parts:
+        d.text((x, h / 2), t_, font=f, fill=tuple(col) + (255,), anchor="lm")
+        x += f.getlength(t_)
     img.save(path)
     return img.size
 
@@ -60,7 +67,7 @@ def pick_time(duration, end_at=None, frac=0.4, show=2.5):
     return max(0.0, min(max(5.0, duration * frac), stop - show))
 
 
-def add_banner(src, dst, text, at=None, show=2.5, y_frac=0.085, end_at=None):
+def add_banner(src, dst, text, at=None, show=2.5, y_frac=0.085, end_at=None, **style):
     """Overlay the banner on src -> dst. Returns the start time used (None if the video is too short)."""
     W, H, dur = probe(src)
     if dur < 12:
@@ -68,7 +75,7 @@ def add_banner(src, dst, text, at=None, show=2.5, y_frac=0.085, end_at=None):
     at = pick_time(dur, end_at, show=show) if at is None else at
     with tempfile.TemporaryDirectory() as td:
         png = os.path.join(td, "banner.png")
-        bw, bh = banner_png(text, W, png)
+        bw, bh = banner_png(text, W, png, **style)
         x, y = (W - bw) // 2, int(H * y_frac)
         fade = 0.25
         # pop in: fade + slide down a few px; fade out at the end

@@ -75,7 +75,15 @@ them, ~500K–22M views).
   every Short (>=5 s in, ends >=1.5 s before the end card) for 2.5 s at 8.5% from the top; ffmpeg overlay after
   rendering (~6-9 s per video). Text from config mid_banner (race styles battle/escape/drop: "SUBSCRIBE & PICK THE
   NEXT COLOR"; normal/rings: "SUBSCRIBE FOR A NEW ONE DAILY"). Not on name videos. Why: avg view 16-26 s, so most
-  viewers never see the end card. Next up: viewer color vote (#1) and YouTube name requests (#2).
+  viewers never see the end card. Next up: YouTube name requests (#2).
+- VIEWER COLOR VOTE (2026-11-23, `votes.py`): when a battle comes up, the pipeline reads YouTube comments + replies on
+  posts from the last 10 days, published after the last voted battle (posts.csv column `vote`, e.g. PURPLE:3), counts
+  color words/emoji (red/blue/green|mint/purple|grape/yellow|gold, 🔴🔵🟢🟣🟡; not ❤), one vote per person per color,
+  channel's own comments excluded. Top color plays (vs the runner-up if it had votes, else random); WINNER is
+  still physics. Voted battles get a "YOU VOTED <COLOR>" pill for the first 3 s, HOOKS["voted"] titles, a vote line
+  in the description and a "you picked X" channel comment. Unvoted battles: description + 50% of channel comments
+  say "the most-picked color plays in the next battle". config vote {enabled, min_votes 1, max_days 10}.
+  `python3 votes.py` prints the live tally. posts.csv header auto-upgrades when LOG_FIELDS grows.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER

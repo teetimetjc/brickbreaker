@@ -28,6 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import battle  # noqa: E402
+import votes  # noqa: E402
 import brickdrop  # noqa: E402
 import escape  # noqa: E402
 import rings  # noqa: E402
@@ -66,6 +67,9 @@ HOOKS = {
     "battle": ["{a} or {b}? Pick before it starts", "{a} vs {b}. Comment your pick", "Which color clears first?",
                "{a} vs {b}. No switching sides", "Same bricks, same start. Who wins?", "Pick a side: {a} or {b}",
                "{a} vs {b}. This one goes down to the wire"],
+    # viewer vote won: {a} = most-picked color in the comments, {b} = its opponent (never spoil who wins)
+    "voted": ["You voted {a}. Can it beat {b}?", "{a} got the most votes. Now it has to win",
+              "You asked for {a}. Here it is vs {b}", "Your pick: {a}. Their opponent: {b}"],
     # brick escape: 4 balls race to the finish line
     "rings": ["Can it escape all {n} rings? ⭕", "{n} rings. 1 ball. Which one traps it longest?", "Every gap is a way out...",
               "Can it break out? ⭕", "Wait for the last ring 👀", "Guess which ring it gets stuck in 👀",
@@ -151,14 +155,19 @@ def pick_style(rng, cfg, recent):
     return "normal"
 
 
-def vary_battle(vcfg, rng, recent):
-    """Different color matchup than the last battle, and a shape not used in the last 3 battles."""
+def vary_battle(vcfg, rng, recent, voted=None, runner=None):
+    """Different color matchup than the last battle, and a shape not used in the last 3 battles.
+    voted: the viewers' most-picked color always plays (vs the runner-up if it had votes, else a random color)."""
     battles = [r for r in recent if r["style"] == "battle"]
     last_pair = set(battles[-1]["palette"].upper().split("-VS-")) if battles else set()
     colors = list(battle.TEAMS)
     pairs = [(a, b) for i, a in enumerate(colors) for b in colors[i + 1:] if {a, b} != last_pair]
     rb = ("RED", "BLUE")
-    vcfg["teams"] = rb if (set(rb) != last_pair and rng.random() < 0.35) else rng.choice(pairs)
+    if voted in battle.TEAMS:
+        others = [c for c in colors if c != voted and {voted, c} != last_pair] or [c for c in colors if c != voted]
+        vcfg["teams"] = (voted, runner if runner in battle.TEAMS and runner != voted else rng.choice(others))
+    else:
+        vcfg["teams"] = rb if (set(rb) != last_pair and rng.random() < 0.35) else rng.choice(pairs)
     if rng.random() < 0.5:
         vcfg["teams"] = vcfg["teams"][::-1]
     used = {r["pattern"] for r in battles[-3:]}
@@ -217,6 +226,12 @@ def pick_hook(meta, vcfg, cfg, rng, avoid):
     if meta.get("mode") == "escape":
         fresh = [h for h in HOOKS["escape"] if h not in avoid] or HOOKS["escape"]
         return rng.choice(fresh)
+    if meta.get("mode") == "battle" and meta.get("vote"):
+        a = meta["vote"].split(":")[0]
+        b = next(t for t in meta["teams"] if t != a)
+        options = sorted({h.format(a=a.title(), b=b.title()) for h in HOOKS["voted"]})
+        fresh = [h for h in options if h not in avoid] or options
+        return rng.choice(fresh)
     if meta.get("mode") == "battle":
         a, b = (t.title() for t in meta["teams"])
         options = sorted({h.format(a=a, b=b) for h in HOOKS["battle"]})
@@ -263,7 +278,14 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
         a, b = (t.title() for t in meta["teams"])
         setup = (f"{a} vs {b}: same {meta['bricks']:,} bricks, same start, same speed. Only the bounces differ. "
                  f"First side to clear wins.")
-        yt_desc = "\n".join([hook, "", setup, "Comment your pick before the end!", "", " ".join(style_tags)])
+        ask = "Comment your pick before the end!"
+        if meta.get("vote"):
+            vc, n = meta["vote"].split(":")
+            ask = (f"{vc.title()} was the most-picked color in the comments ({n} vote{'s' if n != '1' else ''}). "
+                   "Comment a color and the top pick plays in the next battle!")
+        else:
+            ask += " The most-picked color in the comments plays in the next battle."
+        yt_desc = "\n".join([hook, "", setup, ask, "", " ".join(style_tags)])
     else:
         yt_desc = "\n".join([hook, "", setup, "Missed balls are gone for good.", "", " ".join(style_tags)])
     # A/B test: only some X posts get hashtags (config x.hashtag_share); logged so views can be compared later.
@@ -286,8 +308,14 @@ def channel_comment(meta, rng):
     if meta.get("mode") == "drop":
         return rng.choice(["Which color did you pick? 🔴🟡🔵🟢", "Did your bin win? Comment your color 👇",
                            "Close one! Who called it? 👀"])
+    if meta.get("mode") == "battle" and meta.get("vote"):
+        vc = meta["vote"].split(":")[0].title()
+        return rng.choice([f"You picked {vc}, so here it is! Which color should fight next? Comment it 👇",
+                           f"{vc} won the vote. Did it win the battle? Vote for the next color 👇"])
     if meta.get("mode") == "battle":
         a, b = (t.title() for t in meta["teams"])
+        if rng.random() < 0.5:
+            return "Comment a color 🔴🔵🟢🟣🟡 The most-picked one fights in the next battle 👇"
         return rng.choice([f"Which side did you pick, {a} or {b}? Be honest if you switched 👀",
                            f"{a} or {b}: who did you have before it started? Season standings are on the end card 🏆",
                            f"Team {a} or Team {b}? Drop your color for the next battle 👇"])
@@ -358,7 +386,9 @@ def main():
     standings = season_standings(season)
     sub_race = cfg.get("subscribe_text_race", "")
     sub_normal = cfg.get("subscribe_text", "")
+    vote_counts = None  # read lazily, only when a battle comes up
     for i in range(count):
+        vote = None
         # The length tuner occasionally can't hit the target for a design (e.g. huge bricks + 1 ball) and
         # overshoots; re-roll a fresh design rather than post a 2-minute video.
         too_long = cfg["max_len_sec"] * 1.3
@@ -386,7 +416,17 @@ def main():
                 if style == "rings":  # single ball, no colors -> no standings, just the subscribe line
                     vcfg["card_extras"] = {"subscribe": sub_normal} if sub_normal else None
                 if style == "battle":
-                    vary_battle(vcfg, master, recent)
+                    vcfg_vote = cfg.get("vote", {})
+                    if vote_counts is None and vcfg_vote.get("enabled") and not a.quote:
+                        try:
+                            vote_counts = votes.tally(vcfg_vote.get("max_days", 10))
+                            print(f"  viewer color votes: {vote_counts or 'none yet'}")
+                        except Exception as e:  # never block a post over the vote
+                            print(f"  votes skipped: {str(e)[:160]}")
+                            vote_counts = {}
+                    voted, runner = votes.pick(vote_counts or {}, master, vcfg_vote.get("min_votes", 1))
+                    vote = f"{voted}:{vote_counts[voted]}" if voted else None
+                    vary_battle(vcfg, master, recent, voted, runner)
             else:
                 if not (a.word or names):
                     vary_normal(vcfg, master, recent)
@@ -410,6 +450,17 @@ def main():
                 break
             print(f"  {meta['duration']:.0f}s is too long (> {too_long:.0f}s); re-rolling")
             os.remove(path)
+        if vote and meta.get("mode") == "battle":
+            meta["vote"] = vote
+            vote_counts = {}  # one voted battle per tally
+            import banner
+            vc = vote.split(":")[0]
+            try:  # show it's their pick right away: "YOU VOTED PURPLE" for the first 3 s
+                banner.apply_in_place(path, "", at=0.3, show=3.0, fill=(18, 18, 24), icon_on=False,
+                                      parts=[("YOU VOTED ", (255, 255, 255)), (vc, battle.TEAMS[vc][1])])
+                print(f"  vote banner: YOU VOTED {vc}")
+            except Exception as e:
+                print(f"  vote banner skipped: {e}")
         mb = cfg.get("mid_banner", {})
         if mb.get("enabled") and not names:
             # mid-video SUBSCRIBE pill: most viewers swipe away before the end card, so ask ~40% in as well
@@ -471,7 +522,8 @@ def main():
 
 
 LOG_FIELDS = ["time_utc", "x_url", "youtube_url", "quote_of", "hook", "hashtags", "pattern", "obstacle", "palette",
-              "duration_s", "outcome", "cleared_pct", "bricks", "start_balls", "bonus_every", "peak_balls", "file"]
+              "duration_s", "outcome", "cleared_pct", "bricks", "start_balls", "bonus_every", "peak_balls", "file",
+              "vote"]
 
 
 def append_post_log(results, quote):
@@ -480,6 +532,15 @@ def append_post_log(results, quote):
     path = os.path.join(HERE, "data", "posts.csv")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
+    if not new:  # older file without the newest columns: rewrite the header once (old rows get blanks)
+        with open(path, newline="") as f:
+            rd = csv.DictReader(f)
+            old_rows, old_fields = list(rd), rd.fieldnames or []
+        if old_fields != LOG_FIELDS:
+            with open(path, "w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=LOG_FIELDS, extrasaction="ignore")
+                w.writeheader()
+                w.writerows(old_rows)
     with open(path, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=LOG_FIELDS)
         if new:
@@ -495,7 +556,8 @@ def append_post_log(results, quote):
                         "pattern": v["pattern"], "obstacle": v["obstacle"], "palette": v["palette"],
                         "duration_s": round(v["duration"]), "outcome": v["outcome"], "cleared_pct": v["cleared_pct"],
                         "bricks": v["bricks"], "start_balls": v["start_balls"], "bonus_every": v["bonus_every"],
-                        "peak_balls": v["peak_balls"], "file": os.path.basename(v["file"])})
+                        "peak_balls": v["peak_balls"], "file": os.path.basename(v["file"]),
+                        "vote": v.get("vote", "")})
 
 
 def ending_text(v):

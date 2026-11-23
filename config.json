@@ -9,6 +9,7 @@
   "recent_hooks_to_avoid": 10,
   "subscribe_text": "SUBSCRIBE FOR MORE",
   "subscribe_text_race": "SUBSCRIBE FOR A NEW RACE EVERY DAY",
+  "vote": {"enabled": true, "min_votes": 1, "max_days": 10},
   "mid_banner": {"enabled": true, "race": "SUBSCRIBE & PICK THE NEXT COLOR", "normal": "SUBSCRIBE FOR A NEW ONE DAILY"},
   "youtube": {
     "privacy": "public",
