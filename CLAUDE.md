@@ -110,7 +110,10 @@ them, ~500K–22M views).
   names from data/popular_names.txt (skip names used in the last 60 days, data/tiktok_names_used.csv), rendered via
   namereq.render (card "COMMENT YOUR NAME"), ~28 s, sent to the TikTok inbox; caption in run summary + artifact
   captions.txt. Never YouTube/X. Plan: 3/day for 1-2 weeks, 4/day if Trevor keeps up and views hold.
-- BRICK PICKS (sports, 2026-11-24, `picks.py`, NOT scheduled yet - Trevor reviewing options): one ball (or best of 3)
+- BRICK PICKS (sports, 2026-11-24, `picks.py` + runner `sports.py` + manual workflow `sports.yml` (mode pick|result,
+  away, home, winner, score, banner, platforms, live); record in data/picks.csv (result vs last pick = right/wrong,
+  W-L on the result card); NFL team color table with alternates; playlist "Brick Picks"). LOOK APPROVED 2026-11-24
+  (picks.DEFAULT_STYLE + football + field are the defaults): one ball (or best of 3)
   drops through peg-bricks into 2 team bins; seed probed for a 5-11 s drop that passes near the middle late (near
   miss); `winner` can force a side (result videos). Styles: hp (pop=(1,), crack=(1,1,2)), pw/ph (wide bricks 34x12),
   balls=3; ball="football" (rotating sprite), theme="field" (turf stripes). Trevor's pick so far (2026-11-24): FIELD +

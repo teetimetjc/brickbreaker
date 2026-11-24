@@ -208,13 +208,19 @@ def end_card(name, col, extras):
     return arr[..., :3], arr[..., 3:] / 255.0
 
 
+# Trevor's chosen look (2026-11-24): turf field, one football, solid bricks that flash (never break), real bounces.
+DEFAULT_STYLE = dict(hp=(9999,), pw=14, ph=14, spacing=100, row_gap=85, g=650, bounce=1.75, round_pegs=True)
+
+
 def make_pick(cfg, out_path, verbose=True):
     """cfg: teams [(NAME, (r,g,b)), (NAME, (r,g,b))], seed, [winner 0|1|NAME], [banner], [card_extras]."""
     teams = [(n.upper(), lift(tuple(c))) for n, c in cfg["teams"]]
     win = cfg.get("winner")
     if isinstance(win, str):
         win = [t[0] for t in teams].index(win.upper())
-    style = cfg.get("style", {})
+    style = cfg.get("style", DEFAULT_STYLE)
+    cfg.setdefault("ball", "football")
+    cfg.setdefault("theme", "field")
     seed = choose(cfg["seed"], win, verbose, style)
     run = Run(seed, **style)
     tmp_v, tmp_a = out_path[:-4] + ".v.tmp.mp4", out_path[:-4] + ".a.tmp.wav"

@@ -1,0 +1,103 @@
+name: Brick Picks (sports)
+
+# One football decides a game: "pick" before kickoff, "result" after the final (forces the real winner, keeps the
+# record in data/picks.csv). Posts to the platforms listed. Team names + colors only, no logos, no betting.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "pick (before the game) or result (after it)"
+        type: choice
+        options: [pick, result]
+        default: pick
+      away:
+        description: "Away team, e.g. CHIEFS"
+        required: true
+      home:
+        description: "Home team, e.g. BILLS"
+        required: true
+      winner:
+        description: "result only: who actually won"
+        default: ""
+      score:
+        description: "result only, e.g. 27-24"
+        default: ""
+      banner:
+        description: "Line under the matchup (optional), e.g. THANKSGIVING · WHO DO THE BRICKS PICK?"
+        default: ""
+      platforms:
+        description: "Where to post"
+        default: "youtube,x,tiktok"
+      live:
+        description: "Post for real (false = render only, video kept as an artifact)"
+        type: choice
+        options: ["false", "true"]
+        default: "false"
+
+concurrency:
+  group: autopost
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install ffmpeg + Python packages
+        timeout-minutes: 12
+        run: |
+          for i in 1 2 3; do
+            if timeout 180 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update -y && \
+               timeout 180 sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends ffmpeg fonts-dejavu-core; then
+              break
+            fi
+            echo "apt attempt $i failed; retrying in 10s"; sleep 10
+          done
+          pip install -r requirements.txt
+      - name: Render (and post)
+        env:
+          AUTOPOST_LIVE: ${{ inputs.live }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          IN_MODE: ${{ inputs.mode }}
+          IN_AWAY: ${{ inputs.away }}
+          IN_HOME: ${{ inputs.home }}
+          IN_WINNER: ${{ inputs.winner }}
+          IN_SCORE: ${{ inputs.score }}
+          IN_BANNER: ${{ inputs.banner }}
+          IN_PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          python sports.py --mode "$IN_MODE" --away "$IN_AWAY" --home "$IN_HOME" --winner "$IN_WINNER" \
+            --score "$IN_SCORE" --banner "$IN_BANNER" --platforms "$IN_PLATFORMS"
+      - name: Save record + token
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/
+            git commit -m "Brick Picks (run ${{ github.run_number }})"
+            for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+          fi
+      - name: Keep the video
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brick-picks-${{ github.run_number }}
+          path: output/picks/
+          if-no-files-found: ignore
