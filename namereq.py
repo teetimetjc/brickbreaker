@@ -157,7 +157,7 @@ def collect(yt, max_days=14):
     return out
 
 
-def render(reqs, outdir, seed):
+def render(reqs, outdir, seed, card_text="COMMENT YOUR NAME FOR NEXT WEEK"):
     """One ~10 s clip per name, joined into a single Short. Returns (path, total bricks)."""
     rng = random.Random(seed)
     clips, bricks = [], 0
@@ -168,7 +168,7 @@ def render(reqs, outdir, seed):
             vcfg.update(pattern="text", text=pipeline.format_name(r["name"]), obstacle="none", cell=20, balls=None,
                         split_every=0, lose=False, outcome="win", cold_open=False, hp=1,
                         reject_over=None if attempt == 5 else 17)
-            vcfg["card_extras"] = {"subscribe": "COMMENT YOUR NAME FOR NEXT WEEK"} if last else None
+            vcfg["card_extras"] = {"subscribe": card_text} if last else None
             clip = os.path.join(outdir, f"name_{i + 1}_{vcfg['seed']}.mp4")
             try:
                 meta = gen.make_video(vcfg, clip)

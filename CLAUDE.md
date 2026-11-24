@@ -101,6 +101,11 @@ them, ~500K–22M views).
   APPROVED + SCHEDULED 2026-11-23 (Trevor: "anything and everything to keep content different and testing"): ONCE weekly
   (Trevor 2026-11-23), Mon ~7:47 pm Chicago (cron 47 1 * * 2); Vol. 1 started by hand Mon 2026-11-23. A/B per video: length 60/60/180 min, sound both|pad|notes (gen soft_mix),
   logged as palette relax-<sound>; report CSV now has palette for comparing watch time.
+- TIKTOK MIDDAY DRAFT (2026-11-24, `tiktok_names.py`, workflow `tiktok-midday.yml`, daily 17:23 UTC ~11:23 am
+  Chicago): 3rd TikTok-only draft per day (Trevor: TikTok tolerates more posts). "Random names": 2 popular first
+  names from data/popular_names.txt (skip names used in the last 60 days, data/tiktok_names_used.csv), rendered via
+  namereq.render (card "COMMENT YOUR NAME"), ~28 s, sent to the TikTok inbox; caption in run summary + artifact
+  captions.txt. Never YouTube/X. Plan: 3/day for 1-2 weeks, 4/day if Trevor keeps up and views hold.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
