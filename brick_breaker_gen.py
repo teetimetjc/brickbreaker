@@ -50,6 +50,7 @@ PALETTES = {  # (top color, bottom color) - bricks fade between them by row
     "grape": ((190, 110, 255), (100, 45, 210)),
     "gold": ((255, 220, 90), (240, 140, 40)),
     "blue": ((80, 160, 255), (40, 70, 225)),
+    "lime": ((150, 220, 40), (70, 150, 10)),
     "rainbow": None,
 }
 
