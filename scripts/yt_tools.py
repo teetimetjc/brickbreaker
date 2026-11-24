@@ -157,7 +157,7 @@ def backfill():
 
 # ---------------------------------------------------------------- report
 METRICS = ["views", "estimatedMinutesWatched", "averageViewDuration", "averageViewPercentage", "likes", "comments",
-           "shares", "subscribersGained"]
+           "shares", "subscribersGained", "subscribersLost"]
 
 
 def report(days):
