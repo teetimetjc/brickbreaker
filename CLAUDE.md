@@ -184,7 +184,9 @@ them, ~500K–22M views).
 3. X keys done + live tests passed. Schedule ON (repo variable AUTOPOST_LIVE=true set 2026-11-18).
    The first 2 test posts (2026-11-18 ~01:05 and ~01:25 UTC) predate data/posts.csv; both had hashtags.
    Idea for later: daily shortlist of viral posts for Trevor to pick from for quote posts (never auto-quote).
-4. ~~Quote-tweet support on X~~ (built; untested against the real API until X keys exist). Semi-automatic only –
+4. Quote-tweet support on X: BLOCKED BY X API (tried live 2026-11-24): 403 "You can only reply to or quote posts
+   where you are mentioned or are the author." Quote mode can't quote strangers' posts; Trevor quotes by hand in the
+   X app with a video Claude renders locally (word@palette) and sends him. Semi-automatic only –
    Trevor picks the post. Don't auto-quote random strangers' posts at scale (spam risk).
 5. Decide: posting service (Upload-Post / Blotato / Ayrshare, ~$20–30/mo, already audited for
    YouTube/TikTok/Meta) vs direct APIs. If a service, add a publisher for it.
