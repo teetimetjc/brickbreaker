@@ -62,6 +62,8 @@ them, ~500K–22M views).
   style twice in a row (weights from battle_share/escape_share, last style excluded); battles never repeat the
   previous matchup (Red vs Blue ~35% when allowed) and skip shapes from the last 3 battles; normal videos skip
   shapes from the last 3 normals and the last obstacle. Added after 4 Red-vs-Blue battles in a row (2026-11-19).
+  One-off override: config force_style {style, since_utc} makes auto posts that style until one is logged after
+  since_utc (pipeline.forced_style); used 2026-11-24 for the first Brick Drop.
 - NAME REQUESTS (2026-11-21): `--names "Sarah, Mary Ann"` (workflow input `names`) renders one video per viewer name
   spelled in bricks (format_name: ASCII-folded, 2 lines for two words / hyphen / >8 letters; always ends CLEARED;
   no cold open so the whole name shows first) and sends them to TikTok DRAFTS only unless platforms is set, for

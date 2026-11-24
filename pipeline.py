@@ -144,8 +144,24 @@ def recent_posts(n=12):
     return rows[-n:]
 
 
+def forced_style(cfg):
+    """One-off request (config force_style {style, since_utc}): that style until one has been posted live after since_utc."""
+    import csv
+    fs = cfg.get("force_style") or {}
+    if not fs.get("style"):
+        return None
+    path = os.path.join(HERE, "data", "posts.csv")
+    if os.path.exists(path):
+        with open(path, newline="") as f:
+            if any(style_of(r) == fs["style"] and r.get("time_utc", "") >= fs.get("since_utc", "") for r in csv.DictReader(f)):
+                return None  # already done
+    return fs["style"]
+
+
 def pick_style(rng, cfg, recent):
     """Weighted by config shares, but never the same style as the previous post."""
+    if forced_style(cfg):
+        return forced_style(cfg)
     weights = {k: cfg.get(f"{k}_share", 0) for k in ("battle", "escape", "rings", "drop")}
     weights["normal"] = max(0.0, 1 - sum(weights.values()))
     if recent:
