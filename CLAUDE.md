@@ -52,6 +52,8 @@ them, ~500K–22M views).
   Quote mode: `--quote <X link> [--text "caption"] [--ending win|lose|any] [--word MONDAY]` renders 1 video and
   posts it to X only with `quote_tweet_id`. Word videos force no walls + 20px bricks so letters stay readable.
   The workflow's Run button has matching quote/text/ending/word boxes (passed via env vars, not inlined).
+  Word box accepts "WORD@palette" (e.g. NVDA@lime) to force colors; palettes red ocean sunset mint grape gold blue
+  lime rainbow. Ticker/brand words: text only, never draw a company logo (trademark).
 - End cards (vertical): `gen.draw_card_extras` adds a red "SUBSCRIBE ..." pill (config subscribe_text /
   subscribe_text_race) and, for battles/escapes, SEASON N STANDINGS (season = calendar month, Season 1 = Nov 2026;
   wins counted from posts.csv outcomes "<color> wins/escapes" via pipeline.season_standings). Battle GOLD team

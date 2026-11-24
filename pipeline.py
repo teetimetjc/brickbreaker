@@ -363,6 +363,12 @@ def main():
     ap.add_argument("--platforms", default="all", help="comma list to post to, e.g. youtube or x,youtube (default all)")
     a = ap.parse_args()
     a.quote, a.text, a.word = a.quote.strip(), a.text.strip(), a.word.strip().upper()
+    word_palette = None
+    if "@" in a.word:  # "NVDA@lime" = spell NVDA in the lime palette (the workflow has no spare input for colors)
+        a.word, _, pal = a.word.partition("@")
+        a.word, word_palette = a.word.strip(), pal.strip().lower()
+        if word_palette not in gen.PALETTES:
+            sys.exit(f"unknown palette '{word_palette}'; pick one of {', '.join(gen.PALETTES)}")
     if a.quote:
         x.tweet_id(a.quote)  # fail fast on a bad link, before spending time rendering
 
@@ -419,6 +425,8 @@ def main():
                 # no walls (they cut letters) and small bricks (bigger ones make letters unreadable); names always
                 # end CLEARED - the satisfying part is watching the whole name get broken
                 vcfg.update(pattern="text", text=word, obstacle="none", cell=20, balls=None, split_every=0)
+                if word_palette and not names:
+                    vcfg["palette"] = word_palette
                 if names:
                     vcfg.update(lose=True, outcome="win", cold_open=False)  # show the whole name before breaking it
             last = attempt == 7
