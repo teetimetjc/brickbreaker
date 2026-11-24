@@ -110,6 +110,12 @@ them, ~500K–22M views).
   names from data/popular_names.txt (skip names used in the last 60 days, data/tiktok_names_used.csv), rendered via
   namereq.render (card "COMMENT YOUR NAME"), ~28 s, sent to the TikTok inbox; caption in run summary + artifact
   captions.txt. Never YouTube/X. Plan: 3/day for 1-2 weeks, 4/day if Trevor keeps up and views hold.
+- BRICK PICKS (sports, 2026-11-24, `picks.py`, NOT scheduled yet - Trevor reviewing options): one ball (or best of 3)
+  drops through peg-bricks into 2 team bins; seed probed for a 5-11 s drop that passes near the middle late (near
+  miss); `winner` can force a side (result videos). Styles: hp (pop=(1,), crack=(1,1,2)), pw/ph (wide bricks 34x12),
+  balls=3; ball="football" (rotating sprite), theme="field" (turf stripes). Team names as text + colors only (no
+  logos), dark colors auto-brightened (lift). battle.py end card also takes card_extras headline/subline for picks.
+  Thanksgiving 2026: Bears@Lions, Eagles@Cowboys, Chiefs@Bills (8:20 pm ET NBC). No betting framing.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER

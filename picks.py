@@ -145,6 +145,36 @@ def choose(seed, winner=None, verbose=True, style=None):
     return best[1]
 
 
+def football_sprite(scale=1.0):
+    """A brown football with white laces and stripes, as an RGBA sprite (drawn once, rotated per frame)."""
+    w, h = int(64 * scale), int(40 * scale)
+    img = Image.new("RGBA", (w + 8, h + 8), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.ellipse((4, 4, 4 + w, 4 + h), fill=(120, 62, 30, 255), outline=(70, 34, 14, 255), width=3)
+    cx, cy = 4 + w / 2, 4 + h / 2
+    for sx in (-w * 0.3, w * 0.3):     # white end stripes
+        d.line((cx + sx, cy - h * 0.38, cx + sx, cy + h * 0.38), fill=(240, 240, 240, 255), width=max(2, int(3 * scale)))
+    d.line((cx - w * 0.16, cy, cx + w * 0.16, cy), fill=(245, 245, 245, 255), width=max(2, int(3 * scale)))
+    for k in range(-2, 3):             # laces
+        x = cx + k * w * 0.065
+        d.line((x, cy - h * 0.11, x, cy + h * 0.11), fill=(245, 245, 245, 255), width=max(2, int(2 * scale)))
+    return img
+
+
+def field_background():
+    """Turf: mowed stripes with yard lines, for the 'field' theme."""
+    bg = Image.new("RGB", (W, H), (14, 14, 20))
+    d = ImageDraw.Draw(bg)
+    top, bot = TOP - 40, FLOOR
+    n = 10
+    for i in range(n):
+        y0 = top + (bot - top) * i / n
+        y1 = top + (bot - top) * (i + 1) / n
+        d.rectangle((X0, y0, X1, y1), fill=(34, 102, 44) if i % 2 else (40, 116, 52))
+        d.line((X0, y0, X1, y0), fill=(220, 235, 220), width=2)
+    return np.array(bg)
+
+
 def end_card(name, col, extras):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -181,6 +211,10 @@ def make_pick(cfg, out_path, verbose=True):
     enc = Encoder(tmp_v, W, H)
     bg = np.zeros((H, W, 3), np.uint8)
     bg[:] = (14, 14, 20)
+    if cfg.get("theme") == "field":
+        bg = field_background()
+    ball_img = football_sprite() if cfg.get("ball") == "football" else None
+    spin = 0.0
     f_team, f_vs, f_ban, f_bin = gen.font(78), gen.font(44), gen.font(36), gen.font(64)
     (na, ca), (nb, cb) = teams
     wall = (120, 122, 132)
@@ -210,7 +244,10 @@ def make_pick(cfg, out_path, verbose=True):
                        fill=(235, 235, 245), anchor="mm")
         for k2, (sd, lx) in enumerate(run.landed):
             if run.side is None or k2 < len(run.landed) - 1:
-                d.ellipse((lx - R, FLOOR - 2 * R - 4, lx + R, FLOOR - 4), fill=(210, 210, 220))
+                if ball_img is None:
+                    d.ellipse((lx - R, FLOOR - 2 * R - 4, lx + R, FLOOR - 4), fill=(210, 210, 220))
+                else:
+                    img.paste(ball_img, (int(lx - ball_img.width / 2), int(FLOOR - ball_img.height - 4)), ball_img)
         d.rectangle((MID - 5, BIN_TOP - 10, MID + 5, FLOOR), fill=wall)
         d.rectangle((X0 - 10, TOP - 40, X0, FLOOR), fill=wall)
         d.rectangle((X1, TOP - 40, X1 + 10, FLOOR), fill=wall)
@@ -243,11 +280,16 @@ def make_pick(cfg, out_path, verbose=True):
         b = b if b is not None else [MID, TOP, 0, 0]
         bx = b[0] + (math.sin(run.frame * 0.9) * 5 if run.frame < run.next_drop else 0)  # nervous wobble before the drop
         trail = (trail + [(bx, b[1])])[-6:]
-        for k, (tx, ty) in enumerate(trail[:-1]):
+        for k, (tx, ty) in enumerate(trail[:-1] if ball_img is None else []):
             rr = R * (0.5 + 0.08 * k)
             cc = int(14 + 200 * (0.12 + 0.1 * k))
             d.ellipse((tx - rr, ty - rr, tx + rr, ty + rr), fill=(cc, cc, cc))
-        d.ellipse((bx - R, b[1] - R, bx + R, b[1] + R), fill=(255, 255, 255))
+        if ball_img is None:
+            d.ellipse((bx - R, b[1] - R, bx + R, b[1] + R), fill=(255, 255, 255))
+        else:  # tumbling football: spin follows its sideways speed
+            spin += (b[2] if run.frame >= run.next_drop else 0) / FPS * 1.6 + (6 if run.frame >= run.next_drop else 0)
+            spr = ball_img.rotate(spin % 360, resample=Image.BICUBIC, expand=True)
+            img.paste(spr, (int(bx - spr.width / 2), int(b[1] - spr.height / 2)), spr)
         f = np.array(img)
         if run.end is not None and run.frame > run.end + FPS * 0.6:
             if card is None:
