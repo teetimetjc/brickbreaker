@@ -104,7 +104,8 @@ them, ~500K–22M views).
   posts.csv pattern=relax (excluded from Shorts variety rules). Render ~35 min per hour on GitHub.
   APPROVED + SCHEDULED 2026-11-23 (Trevor: "anything and everything to keep content different and testing"): ONCE weekly
   (Trevor 2026-11-23), Mon ~7:47 pm Chicago (cron 47 1 * * 2); Vol. 1 started by hand Mon 2026-11-23. Vol. 2 posted by the schedule Tue 11-24
-  (GitHub ran it ~10 h late; cron collided with the manual Vol. 1) -> scheduled runs now use --once-per-week (skip if a
+  (GitHub ran it ~10 h late; cron collided with the manual Vol. 1; Trevor had it DELETED same day as too soon -
+  youtube-tools action=delete video=ID deletes a video + its posts.csv row) -> scheduled runs now use --once-per-week (skip if a
   relax video is in posts.csv within 6 days). A/B per video: length 60/60/180 min, sound both|pad|notes (gen soft_mix),
   logged as palette relax-<sound>; report CSV now has palette for comparing watch time.
 - TIKTOK MIDDAY DRAFT (2026-11-24, `tiktok_names.py`, workflow `tiktok-midday.yml`, daily 17:23 UTC ~11:23 am
