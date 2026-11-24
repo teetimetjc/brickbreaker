@@ -38,20 +38,20 @@ def lift(rgb, lo=200):
 
 
 class Run:
-    def __init__(self, seed, hp=(1, 1, 2), pw=PR, ph=PR, balls=1, g=G, bounce=1.5):
+    def __init__(self, seed, hp=(1, 1, 2), pw=PR, ph=PR, balls=1, g=G, bounce=1.5, round_pegs=False, spacing=None, row_gap=GAP):
         self.rng = random.Random(seed)
-        self.g, self.bounce = g, bounce
+        self.g, self.bounce, self.round = g, bounce, round_pegs
         self.pw, self.ph, self.balls_total = pw, ph, balls
         self.score, self.landed = [0, 0], []
-        self.rows = int((BIN_TOP - 60 - PEG_TOP) / GAP)
+        self.rows = int((BIN_TOP - 60 - PEG_TOP) / row_gap)
         self.pegs = []
         for r in range(self.rows):
-            sp = max(GAP, 2 * self.pw + 2 * R + 14)   # room for the ball between bricks
+            sp = spacing or max(GAP, 2 * self.pw + 2 * R + 14)   # room for the ball between bricks
             off = 0 if r % 2 == 0 else sp / 2
             x = X0 + 40 + off
             while x < X1 - 35:
                 h0 = self.rng.choice(hp)
-                self.pegs.append(dict(x=x, y=PEG_TOP + r * GAP, hp=h0, hp0=h0, row=r, alive=True))
+                self.pegs.append(dict(x=x, y=PEG_TOP + r * row_gap, hp=h0, hp0=h0, row=r, alive=True))
                 x += sp
         self.ball = [MID + self.rng.uniform(-6, 6), TOP, self.rng.uniform(-30, 30), 0.0]
         self.frame, self.events, self.shards, self.side, self.end = 0, [], [], None, None
@@ -79,8 +79,13 @@ class Run:
                 if not p["alive"] or abs(p["y"] - b[1]) > R + self.ph + 2 or abs(p["x"] - b[0]) > R + self.pw + 2:
                     continue
                 # closest point on the brick rectangle -> circle/rect collision (works for square and wide bricks)
-                cx = min(max(b[0], p["x"] - self.pw), p["x"] + self.pw)
-                cy = min(max(b[1], p["y"] - self.ph), p["y"] + self.ph)
+                if self.round:  # round contact (like a real peg): every hit deflects, nothing to slide along
+                    dd = math.hypot(b[0] - p["x"], b[1] - p["y"]) or 1
+                    k = min(1.0, self.pw / dd)
+                    cx, cy = p["x"] + (b[0] - p["x"]) * k, p["y"] + (b[1] - p["y"]) * k
+                else:
+                    cx = min(max(b[0], p["x"] - self.pw), p["x"] + self.pw)
+                    cy = min(max(b[1], p["y"] - self.ph), p["y"] + self.ph)
                 ex, ey = b[0] - cx, b[1] - cy
                 d = math.hypot(ex, ey)
                 if 0 < d < R:
@@ -91,8 +96,9 @@ class Run:
                         b[3] -= self.bounce * vn * ny
                         b[2] += rng.uniform(-22, 22)
                         p["hp"] -= 1
+                        if self.frame - p.get("hit", -99) > 4:   # one chime/flash per real hit, not per touch
+                            self.events.append((self.frame, "tick", p["row"]))
                         p["hit"] = self.frame
-                        self.events.append((self.frame, "tick", p["row"]))
                         if p["hp"] <= 0:
                             p["alive"] = False
                             self.events.append((self.frame, "break", p["row"]))

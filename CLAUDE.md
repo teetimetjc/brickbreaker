@@ -114,7 +114,9 @@ them, ~500K–22M views).
   drops through peg-bricks into 2 team bins; seed probed for a 5-11 s drop that passes near the middle late (near
   miss); `winner` can force a side (result videos). Styles: hp (pop=(1,), crack=(1,1,2)), pw/ph (wide bricks 34x12),
   balls=3; ball="football" (rotating sprite), theme="field" (turf stripes). Trevor's pick so far (2026-11-24): FIELD +
-  1 FOOTBALL + SOLID bricks that stay (hp=(9999,), wide 34x12, flash white on hit, g=900, bounce=1.25, ~10 s drop). Team names as text + colors only (no
+  1 FOOTBALL + SOLID bricks that stay. Wide/low-bounce version REJECTED (ball slid along flat bricks). Current:
+  style hp=(9999,), pw=ph=14, round_pegs=True (round contact so every hit deflects), spacing=100, row_gap=85,
+  g=650, bounce=1.75 -> real zigzag bounces, ~10 s drop. Bricks flash white on hit (no break). Team names as text + colors only (no
   logos), dark colors auto-brightened (lift). battle.py end card also takes card_extras headline/subline for picks.
   Thanksgiving 2026: Bears@Lions, Eagles@Cowboys, Chiefs@Bills (8:20 pm ET NBC). No betting framing.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
