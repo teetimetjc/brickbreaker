@@ -155,10 +155,19 @@ def end_card(winner, color, loser, left_bricks, gap, extras=None):
     bw, bh = int(W * 0.8), int(H * 0.17)
     x0, y0 = (W - bw) // 2, (H - bh) // 2
     d.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=40, fill=(10, 10, 14, 235))
-    d.text((W / 2, y0 + bh * 0.14), f"{winner} WINS!", font=gen.font(int(W * 0.1)), fill=color, anchor="mt")
+    extras = dict(extras or {})
+    head = extras.pop("headline", "{winner} WINS!").format(winner=winner, loser=loser)  # sports: "THE BRICKS PICK {winner}"
+    fs = int(W * 0.1)
+    while gen.font(fs).getlength(head) > bw * 0.92 and fs > 20:
+        fs -= 2
+    d.text((W / 2, y0 + bh * 0.14), head, font=gen.font(fs), fill=color, anchor="mt")
     sub = f"{loser} had {left_bricks} brick{'s' if left_bricks != 1 else ''} left" if left_bricks > 3 \
         else f"by {gap:.1f} seconds"
-    d.text((W / 2, y0 + bh * 0.66), sub, font=gen.font(int(W * 0.05)), fill=(225, 225, 235), anchor="mt")
+    sub = extras.pop("subline", sub).format(winner=winner, loser=loser)
+    fs2 = int(W * 0.05)
+    while gen.font(fs2).getlength(sub) > bw * 0.9 and fs2 > 16:
+        fs2 -= 2
+    d.text((W / 2, y0 + bh * 0.66), sub, font=gen.font(fs2), fill=(225, 225, 235), anchor="mt")
     gen.draw_card_extras(d, W, y0 + bh + int(W * 0.04), extras, winner=winner)
     arr = np.array(img).astype(np.float32)
     return arr[..., :3], arr[..., 3:] / 255.0
