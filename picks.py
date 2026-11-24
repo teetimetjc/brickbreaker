@@ -38,8 +38,9 @@ def lift(rgb, lo=200):
 
 
 class Run:
-    def __init__(self, seed, hp=(1, 1, 2), pw=PR, ph=PR, balls=1):
+    def __init__(self, seed, hp=(1, 1, 2), pw=PR, ph=PR, balls=1, g=G, bounce=1.5):
         self.rng = random.Random(seed)
+        self.g, self.bounce = g, bounce
         self.pw, self.ph, self.balls_total = pw, ph, balls
         self.score, self.landed = [0, 0], []
         self.rows = int((BIN_TOP - 60 - PEG_TOP) / GAP)
@@ -64,7 +65,7 @@ class Run:
             return
         dt = 1 / FPS / SUB
         for _ in range(SUB):
-            b[3] += G * dt
+            b[3] += self.g * dt
             b[2] *= 0.999
             b[0] += b[2] * dt
             b[1] += b[3] * dt
@@ -86,10 +87,11 @@ class Run:
                     nx, ny = ex / d, ey / d
                     vn = b[2] * nx + b[3] * ny
                     if vn < 0:
-                        b[2] -= 1.5 * vn * nx
-                        b[3] -= 1.5 * vn * ny
+                        b[2] -= self.bounce * vn * nx
+                        b[3] -= self.bounce * vn * ny
                         b[2] += rng.uniform(-22, 22)
                         p["hp"] -= 1
+                        p["hit"] = self.frame
                         self.events.append((self.frame, "tick", p["row"]))
                         if p["hp"] <= 0:
                             p["alive"] = False
@@ -125,6 +127,8 @@ def choose(seed, winner=None, verbose=True, style=None):
     best = None
     n = style.get("balls", 1)
     lo, hi, aim = (5, 11, 8) if n == 1 else (12, 26, 18)
+    if min(style.get("hp", (1,))) > 50 and n == 1:   # solid bricks: the ball hits every row, so it takes longer
+        lo, hi, aim = 7, 13, 10
     for s in range(seed, seed + 60):
         r = Run(s, **style)
         while r.side is None and r.frame < FPS * 25:
@@ -261,7 +265,9 @@ def make_pick(cfg, out_path, verbose=True):
             pw, ph = run.pw, run.ph
             d.rectangle((p["x"] - pw, p["y"] - ph, p["x"] + pw, p["y"] + ph), fill=tuple(int(v * 0.5) for v in c))
             d.rectangle((p["x"] - pw + 2, p["y"] - ph + 2, p["x"] + pw - 2, p["y"] + ph - 2), fill=c)
-            if p["hp"] < p["hp0"]:  # cracked
+            if run.frame - p.get("hit", -99) < 5:  # flash when hit (unbreakable bricks stay put)
+                d.rectangle((p["x"] - pw + 2, p["y"] - ph + 2, p["x"] + pw - 2, p["y"] + ph - 2), fill=(255, 255, 255))
+            if p["hp"] < p["hp0"] < 50:  # cracked (breakable bricks only)
                 d.line((p["x"] - 6, p["y"] - ph + 3, p["x"] + 2, p["y"], p["x"] - 2, p["y"] + ph - 3), fill=(20, 20, 26),
                        width=3)
         keep = []

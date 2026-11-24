@@ -113,7 +113,8 @@ them, ~500K–22M views).
 - BRICK PICKS (sports, 2026-11-24, `picks.py`, NOT scheduled yet - Trevor reviewing options): one ball (or best of 3)
   drops through peg-bricks into 2 team bins; seed probed for a 5-11 s drop that passes near the middle late (near
   miss); `winner` can force a side (result videos). Styles: hp (pop=(1,), crack=(1,1,2)), pw/ph (wide bricks 34x12),
-  balls=3; ball="football" (rotating sprite), theme="field" (turf stripes). Team names as text + colors only (no
+  balls=3; ball="football" (rotating sprite), theme="field" (turf stripes). Trevor's pick so far (2026-11-24): FIELD +
+  1 FOOTBALL + SOLID bricks that stay (hp=(9999,), wide 34x12, flash white on hit, g=900, bounce=1.25, ~10 s drop). Team names as text + colors only (no
   logos), dark colors auto-brightened (lift). battle.py end card also takes card_extras headline/subline for picks.
   Thanksgiving 2026: Bears@Lions, Eagles@Cowboys, Chiefs@Bills (8:20 pm ET NBC). No betting framing.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
