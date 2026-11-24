@@ -1,17 +1,17 @@
-time_utc,video_id,style,hook,hashtags,pattern,obstacle,palette,length_s,outcome,views_now,likes_now,comments_now,views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,comments,shares,subscribersGained
-2026-11-18 02:39,G_7x64vkPUs,normal,Will it make it?,yes,rings,vault,mint,75,lose,192,2,1,82,24,27,36,0,0,0,0
-2026-11-18 04:17,ekmgH2Elnsk,battle,Red vs Blue. This one goes down to the wire,yes,circle,none,red-vs-blue,38,red wins,1362,6,1,296,137,56,147.55,-1,0,0,1
-2026-11-18 07:08,e2SmYlbksTM,battle,"Same bricks, same start. Who wins?",yes,diamond,none,red-vs-blue,34,blue wins,1263,4,1,1061,191,17,48.81,4,0,0,0
-2026-11-18 21:49,AP9Zmq_S9wQ,battle,Pick a side: Red or Blue,no,pyramid,pillars,red-vs-blue,73,red wins,6,0,1,1,0,47,63.6,0,0,0,0
-2026-11-19 01:31,IvHz-LqHfC0,battle,Which color clears first?,no,pyramid,shelves,red-vs-blue,55,red wins,1344,8,1,1340,251,23,42.8,8,0,0,0
-2026-11-19 15:07,wYOZ-ajU05g,normal,945 bricks vs 1 ball,no,checker,funnel,red,42,win,1332,9,1,1308,300,24,58.08,9,0,0,0
-2026-11-20 02:32,AkQHetcB0is,battle,Yellow vs Purple. Comment your pick,yes,rings,pillars,yellow-vs-purple,46,yellow wins,992,5,1,988,185,20,43.05,5,0,0,0
-2026-11-20 16:36,Dtn_hggl6Sw,escape,Pick your ball 🔴🟡🔵🟢,no,escape-5,course,escape-dark,32,blue escapes,652,2,1,588,104,21,66.66,2,0,0,0
-2026-11-21 01:04,k0raSjwJ2B0,battle,Red vs Blue. Comment your pick,yes,stripes,none,red-vs-blue,25,red wins,1275,6,1,1030,99,12,51.96000000000001,4,0,0,0
-2026-11-21 16:06,aFKw31iOr4o,normal,1 ball vs 394 bricks,yes,circle,none,grape,28,win,1380,12,1,1158,241,20,72.67,9,0,0,1
-2026-11-22 00:39,fNNND8Pjtk4,battle,Green vs Purple. Comment your pick,no,diamond,none,green-vs-purple,35,green wins,1381,8,1,1340,246,18,53.82,8,0,0,0
-2026-11-22 15:16,o5oJnkXf3Zw,episode,Episode 1,no,compilation,19 rounds,mixed,851,champion -,77,1,1,,,,,,,,
-2026-11-22 16:31,_DBLRCCxIE4,escape,Who breaks out first? 🔴🟡🔵🟢,no,escape-8,course,escape-light,44,blue escapes,1111,12,1,,,,,,,,
-2026-11-23 00:35,68F4d3uc5KQ,rings,How fast can it break out? ⭕,no,rings-7,none,rings-7,32,escaped,1111,16,3,,,,,,,,
-2026-11-23 14:06,_DdM9KKCjnw,normal,Guess how long this takes,yes,pyramid,pillars,red,40,win,1069,12,1,,,,,,,,
-2026-11-23 16:46,-XK69fg1DxU,relax,Relax Vol. 1,no,relax,15 scenes,relax-notes,3594,,0,0,1,,,,,,,,
+time_utc,video_id,style,hook,hashtags,pattern,obstacle,palette,length_s,outcome,views_now,likes_now,comments_now,views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,comments,shares,subscribersGained,subscribersLost
+2026-11-18 02:39,G_7x64vkPUs,normal,Will it make it?,yes,rings,vault,mint,75,lose,192,2,1,82,24,27,36,0,0,0,0,0
+2026-11-18 04:17,ekmgH2Elnsk,battle,Red vs Blue. This one goes down to the wire,yes,circle,none,red-vs-blue,38,red wins,1362,6,1,296,137,56,147.55,-1,0,0,1,0
+2026-11-18 07:08,e2SmYlbksTM,battle,"Same bricks, same start. Who wins?",yes,diamond,none,red-vs-blue,34,blue wins,1263,4,1,1061,191,17,48.81,4,0,0,0,0
+2026-11-18 21:49,AP9Zmq_S9wQ,battle,Pick a side: Red or Blue,no,pyramid,pillars,red-vs-blue,73,red wins,6,0,1,1,0,47,63.6,0,0,0,0,0
+2026-11-19 01:31,IvHz-LqHfC0,battle,Which color clears first?,no,pyramid,shelves,red-vs-blue,55,red wins,1344,8,1,1340,251,23,42.8,8,0,0,0,0
+2026-11-19 15:07,wYOZ-ajU05g,normal,945 bricks vs 1 ball,no,checker,funnel,red,42,win,1332,9,1,1308,300,24,58.08,9,0,0,0,0
+2026-11-20 02:32,AkQHetcB0is,battle,Yellow vs Purple. Comment your pick,yes,rings,pillars,yellow-vs-purple,46,yellow wins,992,5,1,988,185,20,43.05,5,0,0,0,0
+2026-11-20 16:36,Dtn_hggl6Sw,escape,Pick your ball 🔴🟡🔵🟢,no,escape-5,course,escape-dark,32,blue escapes,652,2,1,588,104,21,66.66,2,0,0,0,0
+2026-11-21 01:04,k0raSjwJ2B0,battle,Red vs Blue. Comment your pick,yes,stripes,none,red-vs-blue,25,red wins,1275,6,1,1030,99,12,51.96000000000001,4,0,0,0,0
+2026-11-21 16:06,aFKw31iOr4o,normal,1 ball vs 394 bricks,yes,circle,none,grape,28,win,1380,12,1,1158,241,20,72.67,9,0,0,1,0
+2026-11-22 00:39,fNNND8Pjtk4,battle,Green vs Purple. Comment your pick,no,diamond,none,green-vs-purple,35,green wins,1381,8,1,1340,246,18,53.82,8,0,0,0,0
+2026-11-22 15:16,o5oJnkXf3Zw,episode,Episode 1,no,compilation,19 rounds,mixed,851,champion -,77,1,1,,,,,,,,,
+2026-11-22 16:31,_DBLRCCxIE4,escape,Who breaks out first? 🔴🟡🔵🟢,no,escape-8,course,escape-light,44,blue escapes,1111,12,1,,,,,,,,,
+2026-11-23 00:35,68F4d3uc5KQ,rings,How fast can it break out? ⭕,no,rings-7,none,rings-7,32,escaped,1112,16,3,,,,,,,,,
+2026-11-23 14:06,_DdM9KKCjnw,normal,Guess how long this takes,yes,pyramid,pillars,red,40,win,1071,11,1,,,,,,,,,
+2026-11-23 16:46,-XK69fg1DxU,relax,Relax Vol. 1,no,relax,15 scenes,relax-notes,3594,,0,0,1,,,,,,,,,
