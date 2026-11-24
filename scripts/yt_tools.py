@@ -230,11 +230,30 @@ def report(days):
     print(f"wrote {path}")
 
 
+def delete_video(vid):
+    """Delete one of the channel's videos (only when Trevor asks) and drop its row from data/posts.csv."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid or ""):
+        sys.exit("give --video with an 11-character YouTube video id")
+    data_api(creds()).videos().delete(id=vid).execute()
+    with open(POSTS, newline="") as f:
+        rd = csv.DictReader(f)
+        fields, rows = rd.fieldnames, list(rd)
+    keep = [r for r in rows if video_id(r.get("youtube_url")) != vid]
+    with open(POSTS, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(keep)
+    summary(f"## Deleted\n- https://youtube.com/watch?v={vid} deleted; {len(rows) - len(keep)} row(s) removed from posts.csv")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["check", "backfill", "report", "votes"])
+    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete"])
+    ap.add_argument("--video", default="", help="delete: the YouTube video id to delete (also removed from posts.csv)")
     ap.add_argument("--days", type=int, default=0, help="report window in days (0 = since the first post)")
     a = ap.parse_args()
+    if a.action == "delete":
+        return delete_video(a.video.strip())
     if a.action == "votes":
         import votes
         return votes.debug()
