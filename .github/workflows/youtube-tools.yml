@@ -6,7 +6,7 @@ on:
       action:
         description: "check = token scopes, backfill = playlists + comments on old uploads, report = analytics"
         type: choice
-        options: [check, backfill, report, votes, delete]
+        options: [check, backfill, report, votes, delete, export]
         default: check
       days:
         description: "Report window in days (0 = since the first post)"
@@ -40,7 +40,7 @@ jobs:
           IN_VIDEO: ${{ inputs.video }}
         run: python scripts/yt_tools.py "$IN_ACTION" --days "$IN_DAYS" --video "$IN_VIDEO"
       - name: Commit report
-        if: ${{ contains(fromJSON('["report","delete"]'), inputs.action || 'report') }}
+        if: ${{ contains(fromJSON('["report","delete","export"]'), inputs.action || 'report') }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

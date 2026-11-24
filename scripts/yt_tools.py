@@ -230,6 +230,79 @@ def report(days):
     print(f"wrote {path}")
 
 
+def export():
+    """Dashboard files in data/analytics/dashboard/: videos.csv (per video), daily.csv (channel per day),
+    sources.csv (where views come from), channel.csv (live totals). Analytics numbers lag ~2 days."""
+    from googleapiclient.discovery import build
+    import pipeline
+    c = creds()
+    yt, ya = data_api(c), build("youtubeAnalytics", "v2", credentials=c, cache_discovery=False)
+    rows = posts()
+    end = dt.date.today()
+    start = min(dt.date.fromisoformat(r["time_utc"][:10]) for r in rows)
+    out_dir = os.path.join(OUTDIR, "dashboard")
+    os.makedirs(out_dir, exist_ok=True)
+
+    def q(**kw):
+        resp = ya.reports().query(ids="channel==MINE", startDate=start.isoformat(), endDate=end.isoformat(), **kw).execute()
+        cols = [h["name"] for h in resp.get("columnHeaders", [])]
+        return [dict(zip(cols, v)) for v in resp.get("rows", [])]
+
+    def write(name, recs, fields):
+        with open(os.path.join(out_dir, name), "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(recs)
+
+    ids = [r["video_id"] for r in rows]
+    live = {}
+    for i in range(0, len(ids), 50):
+        for it in yt.videos().list(part="statistics", id=",".join(ids[i:i + 50])).execute().get("items", []):
+            live[it["id"]] = it["statistics"]
+    ana = {}
+    for i in range(0, len(ids), 200):
+        for d in q(metrics="views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,shares,"
+                           "subscribersGained,subscribersLost", dimensions="video",
+                   filters="video==" + ",".join(ids[i:i + 200]), maxResults=200):
+            ana[d["video"]] = d
+    vids = []
+    for r in rows:
+        if r["video_id"] not in live:   # deleted videos
+            continue
+        a, s_ = ana.get(r["video_id"], {}), live[r["video_id"]]
+        views, likes = int(s_.get("viewCount", 0)), int(s_.get("likeCount", 0))
+        vids.append(dict(posted_utc=r["time_utc"], posted=r["time_utc"][:10], video_id=r["video_id"],
+                         style=pipeline.style_of(r), title=r["hook"], length_s=r["duration_s"], views=views, likes=likes,
+                         likes_per_1k=round(likes / views * 1000, 1) if views else "",
+                         watch_min=round(a["estimatedMinutesWatched"], 1) if a else "",
+                         avg_view_s=round(a["averageViewDuration"], 1) if a else "",
+                         pct_watched=round(a["averageViewPercentage"], 1) if a else "",
+                         shares=a.get("shares", "") if a else "", subs_gained=a.get("subscribersGained", "") if a else "",
+                         subs_lost=a.get("subscribersLost", "") if a else ""))
+    write("videos.csv", vids, list(vids[0]))
+    daily = q(metrics="views,estimatedMinutesWatched,averageViewDuration,likes,shares,subscribersGained,subscribersLost",
+              dimensions="day", sort="day")
+    for d in daily:
+        d["watch_hours"] = round(d["estimatedMinutesWatched"] / 60, 2)
+    write("daily.csv", daily, ["day", "views", "watch_hours", "averageViewDuration", "likes", "shares",
+                               "subscribersGained", "subscribersLost"])
+    src = q(metrics="views,estimatedMinutesWatched", dimensions="insightTrafficSourceType", sort="-views")
+    names = {"SHORTS": "Shorts feed", "YT_SEARCH": "YouTube search", "SUBSCRIBER": "Subscriptions / home",
+             "YT_CHANNEL": "Your channel page", "YT_OTHER_PAGE": "Other YouTube pages", "RELATED_VIDEO": "Suggested videos",
+             "EXT_URL": "Outside websites", "NO_LINK_OTHER": "Direct / unknown", "PLAYLIST": "Playlists",
+             "NOTIFICATION": "Notifications", "HASHTAGS": "Hashtag pages", "SOUND_PAGE": "Sound pages",
+             "YT_PLAYLIST_PAGE": "Playlist pages", "END_SCREEN": "End screens", "ANNOTATION": "Cards"}
+    for d in src:
+        d["source"] = names.get(d["insightTrafficSourceType"], d["insightTrafficSourceType"].replace("_", " ").title())
+        d["watch_hours"] = round(d["estimatedMinutesWatched"] / 60, 2)
+    write("sources.csv", src, ["source", "views", "watch_hours"])
+    ch = yt.channels().list(part="statistics", mine=True).execute()["items"][0]["statistics"]
+    write("channel.csv", [dict(as_of=dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+                               subscribers=ch.get("subscriberCount"), channel_views=sum(v["views"] for v in vids),
+                               videos=len(vids))], ["as_of", "subscribers", "channel_views", "videos"])
+    summary(f"## Dashboard export\n- {len(vids)} videos, {len(daily)} days, {len(src)} traffic sources -> {out_dir}")
+
+
 def delete_video(vid):
     """Delete one of the channel's videos (only when Trevor asks) and drop its row from data/posts.csv."""
     if not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid or ""):
@@ -248,10 +321,12 @@ def delete_video(vid):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete"])
+    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete", "export"])
     ap.add_argument("--video", default="", help="delete: the YouTube video id to delete (also removed from posts.csv)")
     ap.add_argument("--days", type=int, default=0, help="report window in days (0 = since the first post)")
     a = ap.parse_args()
+    if a.action == "export":
+        return export()
     if a.action == "delete":
         return delete_video(a.video.strip())
     if a.action == "votes":
