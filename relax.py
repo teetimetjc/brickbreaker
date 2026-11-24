@@ -106,6 +106,15 @@ def length_label(sec):
     return "1 Hour" if 55 <= m <= 65 else f"{m // 60} Hours" if m >= 110 and m % 60 < 6 else f"{m} Minutes"
 
 
+def posted_within(days):
+    path = os.path.join(HERE, "data", "posts.csv")
+    if not os.path.exists(path):
+        return False
+    cut = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)).strftime("%Y-%m-%d %H:%M")
+    with open(path, newline="") as f:
+        return any(r.get("pattern") == "relax" and r.get("time_utc", "") >= cut for r in csv.DictReader(f))
+
+
 def volume_number():
     path = os.path.join(HERE, "data", "posts.csv")
     if not os.path.exists(path):
@@ -170,8 +179,13 @@ def main():
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--scene-sec", default="180,300", help="min,max scene length in seconds")
+    ap.add_argument("--once-per-week", action="store_true",
+                    help="skip if a relax video was posted in the last 6 days (scheduled runs)")
     a = ap.parse_args()
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
+    if a.once_per_week and posted_within(days=6):
+        print("a relax video was posted in the last 6 days; skipping this week's scheduled one")
+        return
     import pipeline
     cfg = pipeline.load_config(os.path.join(HERE, "config.json"))
     rng = random.Random(a.seed)

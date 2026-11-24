@@ -28,6 +28,8 @@ jobs:
     timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -52,7 +54,9 @@ jobs:
           IN_MINUTES: ${{ inputs.minutes || '0' }}
         run: |
           mkdir -p output
-          python relax.py --minutes "$IN_MINUTES" --out output/relax.mp4
+          # scheduled runs skip if one went up in the last 6 days (manual runs always go)
+          WEEK=""; [ "${{ github.event_name }}" = "schedule" ] && WEEK="--once-per-week"
+          python relax.py --minutes "$IN_MINUTES" --out output/relax.mp4 $WEEK
       - name: Save post log to the repo
         if: always()
         run: |
