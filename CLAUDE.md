@@ -218,6 +218,10 @@ them, ~500K–22M views).
   backfill, and the ANALYTICS REPORT (per-video views/likes now + Analytics API watch time, avg view duration,
   % watched, subs gained; joined with posts.csv; by style + hashtags A/B + top 5) -> data/analytics/<date>.csv
   and the run summary. Runs every Monday 14:41 UTC automatically.
+  action=export -> data/analytics/dashboard/{videos,daily,sources,channel}.csv for the DASHBOARD artifact
+  https://claude.ai/artifact/M34XqMwbfaCo2cZJL5hvtJ (Data type; datasets videos/daily/sources/channel are uploaded files
+  + calcs eng/by_style; refresh = run export, upload the 4 CSVs as assets, update each dataset's source.url, delete old
+  blobs). Trevor: no comments on it (they're all his own).
 
 ## Constraints / gotchas
 - SAFE POSTING CEILING (Trevor 2026-11-23: "as many as won't get us throttled or shut down"): 2 Shorts/day + names
