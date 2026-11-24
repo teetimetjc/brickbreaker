@@ -26,7 +26,7 @@ USED = os.path.join(HERE, "data", "tiktok_names_used.csv")
 CAPTIONS = ["Is your name here? 👀 Comment yours and it might be next 🧱",
             "{a} and {b}, this one's for you 🧱 Who's next? Comment your name 👇",
             "Breaking random names brick by brick 🧱 Is yours next? 👇",
-            "Tag a {a} or a {b} 👀 Comment your name for the next one 🧱",
+            "Know a {a} or {b}? Tag them 👀 Comment your name for the next one 🧱",
             "POV: your name gets broken brick by brick 🧱 Comment it 👇"]
 TAGS = "#satisfying #brickbreaker #yourname #oddlysatisfying"
 
