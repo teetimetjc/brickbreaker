@@ -38,24 +38,29 @@ def lift(rgb, lo=200):
 
 
 class Run:
-    def __init__(self, seed):
+    def __init__(self, seed, hp=(1, 1, 2), pw=PR, ph=PR, balls=1):
         self.rng = random.Random(seed)
+        self.pw, self.ph, self.balls_total = pw, ph, balls
+        self.score, self.landed = [0, 0], []
         self.rows = int((BIN_TOP - 60 - PEG_TOP) / GAP)
         self.pegs = []
         for r in range(self.rows):
-            off = 0 if r % 2 == 0 else GAP / 2
+            sp = max(GAP, 2 * self.pw + 2 * R + 14)   # room for the ball between bricks
+            off = 0 if r % 2 == 0 else sp / 2
             x = X0 + 40 + off
             while x < X1 - 35:
-                self.pegs.append(dict(x=x, y=PEG_TOP + r * GAP, hp=self.rng.choice((1, 1, 2)), row=r, alive=True))
-                x += GAP
+                h0 = self.rng.choice(hp)
+                self.pegs.append(dict(x=x, y=PEG_TOP + r * GAP, hp=h0, hp0=h0, row=r, alive=True))
+                x += sp
         self.ball = [MID + self.rng.uniform(-6, 6), TOP, self.rng.uniform(-30, 30), 0.0]
         self.frame, self.events, self.shards, self.side, self.end = 0, [], [], None, None
+        self.next_drop = INTRO * FPS
         self.close = 1e9     # how near the middle the ball came in the bottom third (tension score)
 
     def step(self):
         rng, b = self.rng, self.ball
         self.frame += 1
-        if self.frame < INTRO * FPS or self.side is not None:
+        if self.frame < self.next_drop or self.side is not None or self.ball is None:
             return
         dt = 1 / FPS / SUB
         for _ in range(SUB):
@@ -70,11 +75,14 @@ class Run:
             if abs(b[2]) + abs(b[3]) < 30 and b[1] < BIN_TOP:
                 b[2] += rng.choice((-1, 1)) * 90
             for p in self.pegs:
-                if not p["alive"] or abs(p["y"] - b[1]) > R + PR + 2:
+                if not p["alive"] or abs(p["y"] - b[1]) > R + self.ph + 2 or abs(p["x"] - b[0]) > R + self.pw + 2:
                     continue
-                ex, ey = b[0] - p["x"], b[1] - p["y"]
+                # closest point on the brick rectangle -> circle/rect collision (works for square and wide bricks)
+                cx = min(max(b[0], p["x"] - self.pw), p["x"] + self.pw)
+                cy = min(max(b[1], p["y"] - self.ph), p["y"] + self.ph)
+                ex, ey = b[0] - cx, b[1] - cy
                 d = math.hypot(ex, ey)
-                if 0 < d < R + PR:
+                if 0 < d < R:
                     nx, ny = ex / d, ey / d
                     vn = b[2] * nx + b[3] * ny
                     if vn < 0:
@@ -90,32 +98,43 @@ class Run:
                                 a = rng.uniform(0, 6.28)
                                 self.shards.append([p["x"], p["y"], math.cos(a) * 170, math.sin(a) * 170 - 130, 1.0,
                                                     p["x"] < MID])
-                    b[0], b[1] = p["x"] + nx * (R + PR), p["y"] + ny * (R + PR)
+                    b[0], b[1] = cx + nx * R, cy + ny * R
             if b[1] > PEG_TOP + (BIN_TOP - PEG_TOP) * 0.62:
                 self.close = min(self.close, abs(b[0] - MID))
             if b[1] > BIN_TOP and abs(b[0] - MID) < R + 6:   # divider between the bins
                 b[0] = MID + (R + 6) * (1 if b[0] > MID else -1)
                 b[2] = -b[2] * 0.4
             if b[1] > FLOOR - 40:
-                self.side = 0 if b[0] < MID else 1
-                self.end = self.frame
-                self.events.append((self.frame, "land", self.side))
+                side = 0 if b[0] < MID else 1
+                self.score[side] += 1
+                self.landed.append((side, b[0]))
+                self.events.append((self.frame, "land", side))
+                need = self.balls_total // 2 + 1
+                if self.score[side] >= need:
+                    self.side, self.end = side, self.frame
+                else:  # best of N: next ball after a short pause
+                    self.ball = [MID + self.rng.uniform(-6, 6), TOP, self.rng.uniform(-30, 30), 0.0]
+                    self.next_drop = self.frame + FPS * 0.9
+                    self.close = 1e9
                 return
 
 
-def choose(seed, winner=None, verbose=True):
-    """Seed whose drop lasts 5-11 s and comes closest to the middle late on (the near-miss). winner: 0/1 or None."""
+def choose(seed, winner=None, verbose=True, style=None):
+    """Seed whose drop lasts 5-11 s (per ball) and comes closest to the middle late on. winner: 0/1 or None."""
+    style = style or {}
     best = None
+    n = style.get("balls", 1)
+    lo, hi, aim = (5, 11, 8) if n == 1 else (12, 26, 18)
     for s in range(seed, seed + 60):
-        r = Run(s)
+        r = Run(s, **style)
         while r.side is None and r.frame < FPS * 25:
             r.step()
         if r.side is None or (winner is not None and r.side != winner):
             continue
         t = r.end / FPS - INTRO
-        if not 5 <= t <= 11:
+        if not lo <= t <= hi:
             continue
-        score = r.close + abs(t - 8) * 8
+        score = r.close + abs(t - aim) * 8 - (40 if n > 1 and min(r.score) == n // 2 else 0)  # best of 3: prefer 2-1
         if best is None or score < best[0]:
             best = (score, s, r.end, r.side, r.close)
     if best is None:
@@ -155,8 +174,9 @@ def make_pick(cfg, out_path, verbose=True):
     win = cfg.get("winner")
     if isinstance(win, str):
         win = [t[0] for t in teams].index(win.upper())
-    seed = choose(cfg["seed"], win, verbose)
-    run = Run(seed)
+    style = cfg.get("style", {})
+    seed = choose(cfg["seed"], win, verbose, style)
+    run = Run(seed, **style)
     tmp_v, tmp_a = out_path[:-4] + ".v.tmp.mp4", out_path[:-4] + ".a.tmp.wav"
     enc = Encoder(tmp_v, W, H)
     bg = np.zeros((H, W, 3), np.uint8)
@@ -183,8 +203,14 @@ def make_pick(cfg, out_path, verbose=True):
             lit = run.side == k
             fill = tuple(int(v * (0.55 if lit else 0.18)) for v in col)
             d.rectangle((bx0 + 6, BIN_TOP, bx1 - 6, FLOOR), fill=fill, outline=col, width=4)
-            d.text(((bx0 + bx1) / 2, (BIN_TOP + FLOOR) / 2 + 20), name, font=f_bin,
+            d.text(((bx0 + bx1) / 2, (BIN_TOP + FLOOR) / 2 + (0 if run.balls_total > 1 else 20)), name, font=f_bin,
                    fill=(255, 255, 255) if lit else col, anchor="mm")
+            if run.balls_total > 1:
+                d.text(((bx0 + bx1) / 2, (BIN_TOP + FLOOR) / 2 + 70), str(run.score[k]), font=f_vs,
+                       fill=(235, 235, 245), anchor="mm")
+        for k2, (sd, lx) in enumerate(run.landed):
+            if run.side is None or k2 < len(run.landed) - 1:
+                d.ellipse((lx - R, FLOOR - 2 * R - 4, lx + R, FLOOR - 4), fill=(210, 210, 220))
         d.rectangle((MID - 5, BIN_TOP - 10, MID + 5, FLOOR), fill=wall)
         d.rectangle((X0 - 10, TOP - 40, X0, FLOOR), fill=wall)
         d.rectangle((X1, TOP - 40, X1 + 10, FLOOR), fill=wall)
@@ -194,9 +220,13 @@ def make_pick(cfg, out_path, verbose=True):
             if not p["alive"]:
                 continue
             col = ca if p["x"] < MID else cb
-            c = tuple(int(v * 0.55 + 255 * 0.25) for v in col) if p["hp"] > 1 else tuple(int(v * 0.85) for v in col)
-            d.rectangle((p["x"] - PR, p["y"] - PR, p["x"] + PR, p["y"] + PR), fill=tuple(int(v * 0.5) for v in c))
-            d.rectangle((p["x"] - PR + 2, p["y"] - PR + 2, p["x"] + PR - 2, p["y"] + PR - 2), fill=c)
+            c = tuple(int(v * 0.55 + 255 * 0.25) for v in col) if p["hp0"] > 1 else tuple(int(v * 0.85) for v in col)
+            pw, ph = run.pw, run.ph
+            d.rectangle((p["x"] - pw, p["y"] - ph, p["x"] + pw, p["y"] + ph), fill=tuple(int(v * 0.5) for v in c))
+            d.rectangle((p["x"] - pw + 2, p["y"] - ph + 2, p["x"] + pw - 2, p["y"] + ph - 2), fill=c)
+            if p["hp"] < p["hp0"]:  # cracked
+                d.line((p["x"] - 6, p["y"] - ph + 3, p["x"] + 2, p["y"], p["x"] - 2, p["y"] + ph - 3), fill=(20, 20, 26),
+                       width=3)
         keep = []
         for s in run.shards:
             s[3] += 900 / FPS
@@ -210,7 +240,8 @@ def make_pick(cfg, out_path, verbose=True):
                 d.rectangle((s[0] - 5, s[1] - 5, s[0] + 5, s[1] + 5), fill=c)
         run.shards = keep
         b = run.ball
-        bx = b[0] + (math.sin(run.frame * 0.9) * 5 if run.frame < INTRO * FPS else 0)  # nervous wobble before the drop
+        b = b if b is not None else [MID, TOP, 0, 0]
+        bx = b[0] + (math.sin(run.frame * 0.9) * 5 if run.frame < run.next_drop else 0)  # nervous wobble before the drop
         trail = (trail + [(bx, b[1])])[-6:]
         for k, (tx, ty) in enumerate(trail[:-1]):
             rr = R * (0.5 + 0.08 * k)
