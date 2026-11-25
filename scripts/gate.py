@@ -59,6 +59,8 @@ def posted_since(start_utc):
 def decide(cfg, now_utc, rng):
     tz = ZoneInfo(cfg.get("post_timezone", "America/Chicago"))
     now = now_utc.astimezone(tz)
+    if now.strftime("%Y-%m-%d") in cfg.get("quiet_dates", []):   # e.g. a game day with only Brick Picks posts
+        return False, 0, f"quiet day {now:%Y-%m-%d} (config quiet_dates): no regular posts"
     slot = cfg.get("slot_minutes", 30)
     for name, start, end in windows_today(cfg, now):
         if start <= now < end:

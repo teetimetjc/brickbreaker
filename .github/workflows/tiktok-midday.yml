@@ -46,6 +46,7 @@ jobs:
           AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE || 'true' }}
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: python tiktok_names.py
       - name: Save token + used names
         if: always()

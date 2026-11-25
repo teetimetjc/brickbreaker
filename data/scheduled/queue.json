@@ -1,0 +1,8 @@
+[
+  {"id": "tg-bears-lions", "at_utc": "2026-11-26 16:00", "file": "data/scheduled/pick_BEARS_LIONS.mp4",
+   "away": "BEARS", "home": "LIONS", "pick": "BEARS", "kickoff": "1:00 pm ET", "platforms": "youtube,x,tiktok"},
+  {"id": "tg-eagles-cowboys", "at_utc": "2026-11-26 19:30", "file": "data/scheduled/pick_EAGLES_COWBOYS.mp4",
+   "away": "EAGLES", "home": "COWBOYS", "pick": "COWBOYS", "kickoff": "4:30 pm ET", "platforms": "youtube,x,tiktok"},
+  {"id": "tg-chiefs-bills", "at_utc": "2026-11-26 23:20", "file": "data/scheduled/pick_CHIEFS_BILLS.mp4",
+   "away": "CHIEFS", "home": "BILLS", "pick": "CHIEFS", "kickoff": "8:20 pm ET", "platforms": "youtube,x,tiktok"}
+]

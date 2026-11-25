@@ -85,6 +85,7 @@
     "hashtag_share": 0.5
   },
   "post_timezone": "America/Chicago",
+  "quiet_dates": ["2026-11-26"],
   "post_windows": [
     {
       "name": "morning",

@@ -53,6 +53,13 @@ def main():
     ap.add_argument("--count", type=int, default=2)
     a = ap.parse_args()
     live = a.live or os.environ.get("AUTOPOST_LIVE", "").lower() in ("1", "true", "yes")
+    import json
+    from zoneinfo import ZoneInfo
+    cfg = json.load(open(os.path.join(HERE, "config.json")))
+    today = dt.datetime.now(ZoneInfo(cfg.get("post_timezone", "America/Chicago"))).strftime("%Y-%m-%d")
+    if live and os.environ.get("GITHUB_EVENT_NAME") == "schedule" and today in cfg.get("quiet_dates", []):
+        print(f"quiet day {today}: no midday draft")
+        return
     rng = random.Random()
     names = pick(a.count, rng)
     outdir = os.path.join(HERE, "output", "tiktok_names")

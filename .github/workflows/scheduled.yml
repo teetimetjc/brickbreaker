@@ -1,0 +1,58 @@
+name: Scheduled posts (pre-made videos)
+
+# Posts entries of data/scheduled/queue.json when their time comes (never twice: data/scheduled/done.csv).
+# Triggered by Claude's timed reminders (dispatch) and, as a backup, GitHub's own cron (which can run late).
+on:
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "Post for real"
+        type: choice
+        options: ["true", "false"]
+        default: "true"
+  schedule:
+    - cron: "5,35 16-23 26 11 *"
+
+concurrency:
+  group: autopost
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fresh done-list
+        run: git pull -q --ff-only origin main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Post what is due
+        env:
+          AUTOPOST_LIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.live || vars.AUTOPOST_LIVE || 'true' }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+        run: python scheduled_post.py
+      - name: Save done-list + record + token
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/
+            git commit -m "Scheduled post (run ${{ github.run_number }})"
+            for i in 1 2 3; do git pull --rebase -q && git push && break; sleep 5; done
+          fi
