@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Posts pre-made, approved Brick Picks videos at set times (data/scheduled/queue.json). Every run posts each entry whose
+Posts Brick Picks videos at set times (data/scheduled/queue.json). An entry with "file" posts that exact video; an
+entry with "render": "pick" makes a FRESH random pick at post time (Trevor 2026-11-25: same idea, new drop each time). Every run posts each entry whose
 time has come and that isn't in data/scheduled/done.csv yet, so a late or duplicate trigger can never post twice.
 Entries more than 3 hours past their time are skipped (a pregame pick after kickoff is pointless) and reported.
 
@@ -62,14 +63,26 @@ def main():
             if live:
                 mark(e, "missed", {})
             continue
-        random.seed(e["id"])
-        caps = sports.captions("pick", e["away"], e["home"], e["pick"], "", "", (0, 0), cfg, "NFL")
-        lines.append(f"- {e['id']}: DUE -> {caps['youtube']['title']}")
+        if e.get("file"):
+            path, pick = os.path.join(HERE, e["file"]), e.get("pick", "")
+        else:  # fresh random drop, rendered now
+            import picks
+            ca, cb = sports.team_colors(e["away"], e["home"])
+            out = os.path.join(HERE, "output", "scheduled")
+            os.makedirs(out, exist_ok=True)
+            path = os.path.join(out, f"{e['id']}.mp4")
+            meta = picks.make_pick(dict(teams=[(e["away"], ca), (e["home"], cb)], seed=random.SystemRandom().randint(1, 10 ** 6),
+                                        banner=e.get("banner", "WHO DO THE BRICKS PICK?"),
+                                        card_extras={"subscribe": "FOLLOW FOR BRICK PICKS", "subline": "Who you got?"}),
+                                   path, verbose=False)
+            pick = meta["winner"]
+        random.seed()
+        caps = sports.captions("pick", e["away"], e["home"], pick, "", "", (0, 0), cfg, "NFL")
+        lines.append(f"- {e['id']}: DUE -> bricks pick {pick} | {caps['youtube']['title']}")
         if not live:
             continue
         from publishers import tiktok, x, youtube
         pubs, urls = {"youtube": youtube, "x": x, "tiktok": tiktok}, {}
-        path = os.path.join(HERE, e["file"])
         for name in [p.strip() for p in e.get("platforms", "youtube,x").split(",") if p.strip() in pubs]:
             if not pubs[name].configured():
                 lines.append(f"  - {name}: skipped (no keys)")
@@ -86,7 +99,7 @@ def main():
             if new:
                 w.writeheader()
             w.writerow(dict(time_utc=now.strftime("%Y-%m-%d %H:%M"), mode="pick", league="NFL", away=e["away"],
-                            home=e["home"], pick=e["pick"], winner="", score="", correct="",
+                            home=e["home"], pick=pick, winner="", score="", correct="",
                             url=urls.get("youtube") or urls.get("x") or ""))
     text = "\n".join(lines)
     print(text)

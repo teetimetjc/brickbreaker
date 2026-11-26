@@ -128,7 +128,8 @@ them, ~500K–22M views).
 - SCHEDULED POSTS (2026-11-25): `scheduled_post.py` + workflow `scheduled.yml` post pre-made approved videos from
   data/scheduled/queue.json at their at_utc (never twice: data/scheduled/done.csv; >3 h late = skipped as missed).
   Triggered by Claude's send_later reminders (dispatch) + backup GitHub cron. Thanksgiving 11-26: the 3 Brick Picks
-  2 h before kickoff (16:00 / 19:30 / 23:20 UTC), YouTube + X + TikTok drafts. config quiet_dates ["2026-11-26"]:
+  2 h before kickoff (16:00 / 19:30 / 23:20 UTC), YouTube + X + TikTok drafts. Trevor 2026-11-25: NOT the preview videos -
+  entries have render="pick" (+ banner) so each is a FRESH random drop rendered at post time (workflow installs ffmpeg). config quiet_dates ["2026-11-26"]:
   gate.py and the scheduled TikTok midday draft skip that Chicago date (Trevor: only the picks that day).
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
