@@ -93,6 +93,13 @@ def main():
             except Exception as ex:  # keep going with the other platforms
                 lines.append(f"  - {name}: ERROR {ex}")
         mark(e, "posted" if urls else "failed", urls)
+        if urls.get("youtube") or urls.get("x"):  # main post log too (dashboard, playlist backfill, analytics)
+            import pipeline
+            v = dict(file=path, pattern="pick", obstacle=f"{e['away']}@{e['home']}", palette="pick", duration=12,
+                     outcome=f"pick {pick.lower()}", cleared_pct="", bricks="", start_balls=1, bonus_every="",
+                     peak_balls="")
+            pipeline.append_post_log([{"video": v, "captions": {"x": {"hook": caps["x"]["hook"], "hashtags": False}},
+                                       "posts": {k: {"url": u} for k, u in urls.items()}}], "")
         new = not os.path.exists(sports.RECORD)
         with open(sports.RECORD, "a", newline="") as f:
             w = csv.DictWriter(f, fieldnames=sports.FIELDS)
