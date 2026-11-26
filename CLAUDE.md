@@ -181,7 +181,12 @@ them, ~500K–22M views).
 - `brickdrop.py` – BRICK DROP style (`drop`): 40–160 balls into 4 color bins through peg-bricks (hp scales with ball
   count), seed probed for a 1-ball-margin finish with lead changes; winner counts toward season standings.
   Shared helpers in `sfx.py`. Mix (config): battle .2, escape .2, rings .15, drop .15, normal rest. Pipeline falls
-  back to a normal video if a style can't fit after 5 re-rolls. Weekly episode now includes rings + drop rounds
+  back to a normal video if a style can't fit after 5 re-rolls.
+  MIX CHANGED 2026-11-26 (Trevor OK'd, early data): battle .2, escape .15, rings .25, drop .2, normal .2.
+  SHARE PROMPTS (2026-11-26, zero shares so far): pipeline.SHARE_LINES per style go in every YouTube description
+  (above the hashtags) + TikTok caption, and replace the channel comment on 40% of videos (config share_prompts).
+  RELAX SEO (2026-11-26): relax.TITLES lead with search terms, seo_intro() opening line, SEO_TAGS;
+  youtube-tools action=relax-seo retitles already-posted relax videos. Weekly episode now includes rings + drop rounds
   too (rings.configure / brickdrop.configure(1920,1080); end cards sized from a phone-width base).
 
 ## Status

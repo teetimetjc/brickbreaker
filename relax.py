@@ -94,11 +94,18 @@ def make_relax(total_min, out_path, seed=None, verbose=True, scene_range=(180, 3
 
 
 # ------------------------------------------------------------------ publishing
-TITLES = ["{len} of Oddly Satisfying Brick Breaking 😴 Relax, Study, Sleep",
-          "{len} of Calm Brick Breaking for Sleep & Focus 🌙",
-          "Relaxing Brick Breaker for {len} 😌 No Talking, Soft Sounds",
-          "{len} of Satisfying Bricks to Fall Asleep To 💤",
-          "Study With Me: {len} of Calm Brick Breaking 📚"]
+# Search-friendly (2026-11-26): lead with what people type - relaxing / brick breaker / satisfying / ASMR / sleep / study.
+TITLES = ["{len} Relaxing Brick Breaker 😴 Oddly Satisfying ASMR for Sleep & Study",
+          "Oddly Satisfying Brick Breaker for {len} 💤 Relaxing Sounds to Fall Asleep",
+          "{len} of Calm Brick Breaking ASMR 🌙 No Talking, Relax & Study",
+          "Satisfying Brick Breaker Relaxation {len} 😌 Calm Sounds for Sleep"]
+SEO_TAGS = ["relaxing video", "sleep video", "study with me", "brick breaker", "oddly satisfying", "asmr no talking",
+            "calm video", "background video", "satisfying video", "relaxing sounds", "sleep sounds", "focus music"]
+
+
+def seo_intro(label):
+    return (f"Relaxing brick breaker ASMR: {label.lower()} of oddly satisfying bricks breaking, with soft sounds and no "
+            "talking. A calm background video to sleep, study, work, focus or just relax.")
 
 
 def length_label(sec):
@@ -137,11 +144,10 @@ def captions(meta, vol, cfg, rng):
         t += s["seconds"]
     sound = {"both": "Soft sounds", "pad": "A quiet ambient hum (no break sounds)",
              "notes": "Soft brick sounds"}[meta.get("sound", "both")]
-    desc = "\n".join([f"Relax Vol. {vol}: {label.lower()} of calm, oddly satisfying brick breaking. {sound}, no "
-                      "talking. Put it on while you study, work or fall asleep.",
+    desc = "\n".join([seo_intro(label), "", f"Relax Vol. {vol}. {sound}.",
                       "", *chapters, "", "New relaxing videos every week. Subscribe for more 🧱", "", " ".join(tags)])
     return {"title": title[:100], "description": desc, "tags": cfg["youtube"]["tags"] + ["relaxing", "sleep",
-                                                                                           "study", "asmr", "calm"],
+                                                                                           "study", "asmr", "calm"] + SEO_TAGS,
             "playlist": cfg["youtube"].get("playlists", {}).get("relax"),
             "comment": "What are you listening to this for: studying, working or sleeping? 😴"}
 

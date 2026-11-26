@@ -6,13 +6,14 @@
                       "max_len_sec": 25, "note": "Trevor 2026-11-23: test a 15-25 s Short in tonight's post"},
   "game_over_share": 0.3,
   "battle_share": 0.2,
-  "escape_share": 0.2,
+  "escape_share": 0.15,
   "max_brick_px": 30,
   "recent_hooks_to_avoid": 10,
   "subscribe_text": "SUBSCRIBE FOR MORE",
   "subscribe_text_race": "SUBSCRIBE FOR A NEW RACE EVERY DAY",
   "name_requests": {"min_names": 2, "max_names": 3, "max_days": 14, "ask_share": 0.35},
   "vote": {"enabled": true, "min_votes": 1, "max_days": 10},
+  "share_prompts": {"enabled": true, "comment_share": 0.4},
   "mid_banner": {"enabled": true, "race": "SUBSCRIBE & PICK THE NEXT COLOR", "normal": "SUBSCRIBE FOR A NEW ONE DAILY"},
   "youtube": {
     "privacy": "public",
@@ -108,7 +109,7 @@
       "#fyp"
     ]
   },
-  "rings_share": 0.15,
-  "drop_share": 0.15,
+  "rings_share": 0.25,
+  "drop_share": 0.2,
   "force_style": {"style": "drop", "since_utc": "2026-11-24 04:38", "note": "Trevor 2026-11-24: make the next post a Brick Drop; stops by itself once one is posted"}
 }

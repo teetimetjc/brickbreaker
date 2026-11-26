@@ -303,6 +303,30 @@ def export():
     summary(f"## Dashboard export\n- {len(vids)} videos, {len(daily)} days, {len(src)} traffic sources -> {out_dir}")
 
 
+def relax_seo():
+    """Give already-posted relax videos the search-friendly title, opening line and tags (relax.py SEO, 2026-11-26)."""
+    import relax
+    yt = data_api(creds())
+    for r in posts():
+        if r.get("pattern") != "relax":
+            continue
+        it = yt.videos().list(part="snippet", id=r["video_id"]).execute().get("items", [])
+        if not it:
+            continue
+        sn = it[0]["snippet"]
+        label = relax.length_label(float(r.get("duration_s") or 3600))
+        intro = relax.seo_intro(label)
+        title = relax.TITLES[0].format(len=label)[:100]
+        desc = sn.get("description", "")
+        if intro not in desc:
+            desc = intro + "\n\n" + desc
+        tags = list(dict.fromkeys((sn.get("tags") or []) + relax.SEO_TAGS))
+        body = {"id": r["video_id"], "snippet": {"title": title, "description": desc[:5000], "tags": tags,
+                                                 "categoryId": sn.get("categoryId", "24")}}
+        yt.videos().update(part="snippet", body=body).execute()
+        summary(f"- {r['video_id']}: '{sn['title']}' -> '{title}'")
+
+
 def delete_video(vid):
     """Delete one of the channel's videos (only when Trevor asks) and drop its row from data/posts.csv."""
     if not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid or ""):
@@ -321,10 +345,12 @@ def delete_video(vid):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete", "export"])
+    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete", "export", "relax-seo"])
     ap.add_argument("--video", default="", help="delete: the YouTube video id to delete (also removed from posts.csv)")
     ap.add_argument("--days", type=int, default=0, help="report window in days (0 = since the first post)")
     a = ap.parse_args()
+    if a.action == "relax-seo":
+        return relax_seo()
     if a.action == "export":
         return export()
     if a.action == "delete":

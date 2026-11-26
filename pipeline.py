@@ -274,6 +274,23 @@ def pick_hook(meta, vcfg, cfg, rng, avoid):
     return rng.choice(fresh)
 
 
+# Share prompts (2026-11-26: zero shares so far; shares are a strong push signal). {a}/{b} = battle teams.
+SHARE_LINES = {
+    "battle": ["Send this to someone who'd pick {a} 👀", "Tag a friend who's Team {b} 👇", "Send this to your friend and see who they pick 🔴🔵"],
+    "escape": ["Send this to the friend who always picks the wrong color 😅", "Share this and see who picks the winner 🔴🟡🔵🟢"],
+    "drop": ["Send this to the friend who always picks the wrong color 😅", "Share this and see who picks the winning bin 🔴🟡🔵🟢"],
+    "rings": ["Send this to someone who needs to see this escape 👀", "Share this with someone who thinks they'd guess the ring ⭕"],
+    "normal": ["Send this to someone who needs something satisfying today 🧱", "Share this with the friend who loves satisfying videos 👀"],
+}
+
+
+def share_line(meta, rng):
+    mode = meta.get("mode") or "normal"
+    opts = SHARE_LINES.get(mode, SHARE_LINES["normal"])
+    a, b = (t.title() for t in meta.get("teams", ("Red", "Blue"))[:2]) if mode == "battle" else ("", "")
+    return rng.choice(opts).format(a=a, b=b)
+
+
 def build_captions(meta, vcfg, cfg, rng, avoid=()):
     """One hook per video, chosen to fit how it really ends, used for both the YouTube title and the X post."""
     hook = pick_hook(meta, vcfg, cfg, rng, set(avoid))
@@ -314,13 +331,20 @@ def build_captions(meta, vcfg, cfg, rng, avoid=()):
     use_tags = rng.random() < cfg["x"].get("hashtag_share", 1.0)
     x_text = f"{hook}\n\n{' '.join(cfg['x']['hashtags'])}" if use_tags else hook
     mode = meta.get("mode") or "normal"
+    sp = cfg.get("share_prompts", {})
+    share = share_line(meta, rng) if sp.get("enabled") else ""
+    if share and style_tags:  # just above the hashtags at the end of the description
+        tail = "\n\n" + " ".join(style_tags)
+        yt_desc = yt_desc[: -len(tail)] + "\n" + share + tail if yt_desc.endswith(tail) else yt_desc + "\n\n" + share
     yt = {"title": yt_title, "description": yt_desc, "tags": cfg["youtube"]["tags"],
           "playlist": cfg["youtube"].get("playlists", {}).get(mode)}
     if cfg["youtube"].get("comments"):
         yt["comment"] = channel_comment(meta, rng, cfg.get("name_requests", {}).get("ask_share", 0))
+        if share and not meta.get("vote") and rng.random() < sp.get("comment_share", 0):
+            yt["comment"] = share  # some videos ask for a share instead of a question
     tags_tt = " ".join(cfg.get("tiktok", {}).get("hashtags", []))
     return {"youtube": yt, "x": {"text": x_text, "hook": hook, "hashtags": use_tags},
-            "tiktok": {"text": f"{hook} {tags_tt}".strip()}}  # inbox drafts can't carry it; shown in captions.txt
+            "tiktok": {"text": "\n".join(t for t in (hook, share, tags_tt) if t)}}  # inbox drafts can't carry it; shown in captions.txt
 
 
 NAME_ASKS = ["Comment your name and we'll break it in bricks next week 👇 (first names only)",
