@@ -97,7 +97,7 @@ def captions(mode, away, home, team, score, correct, rec, cfg, league):
           "tags": cfg["youtube"]["tags"] + [league, away.lower(), home.lower(), "brick picks"],
           "playlist": cfg["youtube"].get("playlists", {}).get("pick", "Brick Picks"), "comment": comment}
     return {"youtube": yt, "x": {"text": x, "hook": hook, "hashtags": False},
-            "tiktok": {"text": f"{hook} Who you got? 👇 #brickpicks {tag} #satisfying"}}
+            "tiktok": {"text": f"{hook} {'Who you got? 👇' if mode == 'pick' else 'Which game should the bricks pick next? 👇'} #brickpicks {tag} #satisfying"}}
 
 
 def main():
