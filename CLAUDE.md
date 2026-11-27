@@ -133,6 +133,8 @@ them, ~500K–22M views).
   gate.py and the scheduled TikTok midday draft skip that Chicago date (Trevor: only the picks that day).
   TIMING RULE (Trevor 2026-11-26): 2 h before kickoff is too late (Shorts need hours to get pushed). Post picks the
   MORNING of game day (~4-6 h ahead); prime-time games around lunch or the night before.
+  NO RESULT VIDEOS (Trevor 2026-11-27: doesn't want post-game result videos; pregame picks only). result mode stays in
+  sports.py but don't offer or post results.
 - WATCH-TIME TUNING (2026-11-19, after analytics showed ~11 s average view on 35–75 s Shorts): length range now
   20–45 s; COLD OPEN in all styles (gen.cold_open skips the first moments unrecorded until ~3% of bricks are
   broken / 2.5–3 s; escape skips 1 s; events shifted with gen.shift_events, end times are video time); GAME OVER
