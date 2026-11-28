@@ -190,7 +190,11 @@ them, ~500K–22M views).
   SHARE PROMPTS (2026-11-26, zero shares so far): pipeline.SHARE_LINES per style go in every YouTube description
   (above the hashtags) + TikTok caption, and replace the channel comment on 40% of videos (config share_prompts).
   RELAX SEO (2026-11-26): relax.TITLES lead with search terms, seo_intro() opening line, SEO_TAGS;
-  youtube-tools action=relax-seo retitles already-posted relax videos. Weekly episode now includes rings + drop rounds
+  youtube-tools action=relax-seo retitles already-posted relax videos.
+  METADATA (2026-11-28): every upload sets defaultLanguage/defaultAudioLanguage en; episode titles via
+  compilation.episode_title ('14 Minutes of Oddly Satisfying Brick Breaker 🧱 Color Battles & Marble Races | Episode N')
+  + episode_intro + EPISODE_SEO_TAGS; youtube-tools action=metadata backfills all videos + sets the channel
+  description/keywords (yt_tools.CHANNEL_DESCRIPTION / CHANNEL_KEYWORDS). Weekly episode now includes rings + drop rounds
   too (rings.configure / brickdrop.configure(1920,1080); end cards sized from a phone-width base).
 
 ## Status

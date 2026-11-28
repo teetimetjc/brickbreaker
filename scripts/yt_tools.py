@@ -327,6 +327,53 @@ def relax_seo():
         summary(f"- {r['video_id']}: '{sn['title']}' -> '{title}'")
 
 
+CHANNEL_DESCRIPTION = """Oddly satisfying brick breaker videos, made fresh every day. 🧱
+
+Color battles where you pick a side, 4-ball brick escapes, ring escapes, brick drops, Brick Picks for big games, and calm 1-hour relax videos for sleep and study.
+
+Comment a color and the most-picked one plays in the next battle. Comment your name and it might get broken in bricks.
+
+New Shorts every day · Weekly episode on Sundays · Relax video on Mondays"""
+CHANNEL_KEYWORDS = ('"brick breaker" "oddly satisfying" "satisfying videos" "color battle" "marble race" asmr '
+                    'relaxing "relaxing videos" "sleep video" "study with me" "brick picks" simulation satisfying')
+
+
+def metadata():
+    """Behind-the-scenes metadata (2026-11-28): English language on every video, search-friendly episode titles,
+    channel description + keywords."""
+    import compilation
+    yt = data_api(creds())
+    n_lang = 0
+    for r in posts():
+        it = yt.videos().list(part="snippet", id=r["video_id"]).execute().get("items", [])
+        if not it:
+            continue
+        sn = it[0]["snippet"]
+        body = {"title": sn["title"], "description": sn.get("description", ""), "tags": sn.get("tags", []),
+                "categoryId": sn.get("categoryId", "24"), "defaultLanguage": "en", "defaultAudioLanguage": "en"}
+        if r.get("pattern") == "compilation":
+            ep = sum(1 for x in posts() if x.get("pattern") == "compilation" and x["time_utc"] <= r["time_utc"])
+            mins = max(1, round(float(r.get("duration_s") or 840) / 60))
+            rounds = int("".join(ch for ch in (r.get("obstacle") or "") if ch.isdigit()) or 0) or 15
+            body["title"] = compilation.episode_title(ep, mins)[:100]
+            intro = compilation.episode_intro(rounds)
+            if intro not in body["description"]:
+                body["description"] = intro + "\n\n" + body["description"]
+            body["tags"] = list(dict.fromkeys(body["tags"] + compilation.EPISODE_SEO_TAGS))
+            summary(f"- episode {r['video_id']}: '{sn['title']}' -> '{body['title']}'")
+        yt.videos().update(part="snippet", body={"id": r["video_id"], "snippet": body}).execute()
+        n_lang += 1
+    summary(f"- language set to English on {n_lang} videos")
+    ch = yt.channels().list(part="brandingSettings", mine=True).execute()["items"][0]
+    bs = ch.get("brandingSettings", {})
+    bs.setdefault("channel", {})
+    bs["channel"]["description"] = CHANNEL_DESCRIPTION
+    bs["channel"]["keywords"] = CHANNEL_KEYWORDS
+    bs["channel"]["defaultLanguage"] = "en"
+    yt.channels().update(part="brandingSettings", body={"id": ch["id"], "brandingSettings": bs}).execute()
+    summary("- channel description + keywords updated")
+
+
 def delete_video(vid):
     """Delete one of the channel's videos (only when Trevor asks) and drop its row from data/posts.csv."""
     if not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid or ""):
@@ -345,10 +392,12 @@ def delete_video(vid):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete", "export", "relax-seo"])
+    ap.add_argument("action", choices=["check", "backfill", "report", "votes", "delete", "export", "relax-seo", "metadata"])
     ap.add_argument("--video", default="", help="delete: the YouTube video id to delete (also removed from posts.csv)")
     ap.add_argument("--days", type=int, default=0, help="report window in days (0 = since the first post)")
     a = ap.parse_args()
+    if a.action == "metadata":
+        return metadata()
     if a.action == "relax-seo":
         return relax_seo()
     if a.action == "export":

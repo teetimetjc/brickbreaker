@@ -283,12 +283,25 @@ def make_episode(out_path, episode, seed, max_total=MAX_TOTAL_S):
                 wins=wins, champion=champ)
 
 
+# Search-friendly (2026-11-26): lead with what people search for.
+EPISODE_SEO_TAGS = ["brick breaker compilation", "oddly satisfying compilation", "satisfying video", "marble race",
+                    "color battle", "ball race", "satisfying simulation", "asmr", "relaxing video"]
+
+
+def episode_title(n, minutes):
+    return f"{minutes} Minutes of Oddly Satisfying Brick Breaker 🧱 Color Battles & Marble Races | Episode {n}"
+
+
+def episode_intro(n_rounds):
+    return (f"Oddly satisfying brick breaker compilation: {n_rounds} rounds of color battles, marble-race style brick "
+            "escapes, ring escapes and brick drops. Pick a color, keep score and see who wins the week.")
+
+
 def captions(ep, cfg):
     n = ep["episode"]
-    title = f"Oddly Satisfying Brick Breaker | Color Battles & Brick Escapes | Episode {n}"
-    lines = [f"Episode {n}: {len(ep['rounds'])} rounds of oddly satisfying brick breaker. Color battles, 4-ball "
-             "brick escapes and satisfying clears, all simulated from scratch. Keep score and pick your color!",
-             "", "Chapters:"]
+    title = episode_title(n, max(1, round(ep["duration"] / 60)))
+    lines = [episode_intro(len(ep["rounds"])), "",
+             f"Episode {n}: every round is simulated from scratch, so no two are alike.", "", "Chapters:"]
     lines += [f"{fmt_ts(ts)} {name}" for ts, name in ep["chapters"]]
     if ep["wins"]:
         board = ", ".join(f"{c.title()} {w}" for c, w in sorted(ep["wins"].items(), key=lambda kv: -kv[1]))
@@ -296,7 +309,7 @@ def captions(ep, cfg):
     lines += ["", "New episode every week. Daily Shorts on the channel too.", "",
               " ".join(cfg["youtube"].get("hashtags_by_style", {}).get("episode", ["#satisfying", "#relaxing",
                                                                                   "#brickbreaker"]))]
-    tags = cfg["youtube"]["tags"] + ["compilation", "color battle", "marble race", "relaxing", "asmr game"]
+    tags = cfg["youtube"]["tags"] + ["compilation", "color battle", "marble race", "relaxing", "asmr game"] + EPISODE_SEO_TAGS
     comment = "Which color are you backing for next week's episode? 🔴🔵🟡🟢🟣"
     if ep["wins"]:
         comment = f"Final standings: {board}. Who takes it next week? Comment your color 👇"

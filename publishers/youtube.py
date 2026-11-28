@@ -39,6 +39,8 @@ def post(path, caption, settings):
             "description": caption["description"],
             "tags": caption.get("tags", []),
             "categoryId": settings.get("category_id", "24"),  # 24 = Entertainment
+            "defaultLanguage": settings.get("language", "en"),        # tells YouTube who to show it to
+            "defaultAudioLanguage": settings.get("language", "en"),
         },
         "status": {
             "privacyStatus": settings.get("privacy", "public"),
