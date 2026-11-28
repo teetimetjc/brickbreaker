@@ -111,5 +111,5 @@
   },
   "rings_share": 0.25,
   "drop_share": 0.2,
-  "force_style": {"style": "drop", "since_utc": "2026-11-24 04:38", "note": "Trevor 2026-11-24: make the next post a Brick Drop; stops by itself once one is posted"}
+  "force_style": {"style": "rings", "since_utc": "2026-11-28 16:57", "note": "Trevor 2026-11-28: tonight's post is another Ring Escape to test the fast start; stops by itself once one posts"}
 }
